@@ -11,27 +11,30 @@ let allThemes
 let defaultTheme
 let defaultThemes
 
-let themePromise = browser.management.getAll()
-themePromise.then ((allExtensions) => {
-  allThemes = allExtensions.filter(info => info.type === 'theme')
-  if (allThemes === []) {
-    logger.log('No themes found!')
-  }
-
-  defaultTheme = allThemes.filter(info => info.name === 'Default')
-  if (defaultTheme === []) {
-    for (theme in allThemes) {
-      if (isDefaultTheme(theme)) {
-        defaultTheme = theme
-        break
-      }
+function getAllThemes() {
+  let themePromise = browser.management.getAll()
+  themePromise.then ((allExtensions) => {
+    allThemes = allExtensions.filter(info => info.type === 'theme')
+    if (allThemes === []) {
+      logger.log('No themes found!')
+      return
     }
-    logger.log('No default themes found!')
-  }
 
-  defaultThemes = allThemes.filter(isDefaultTheme)
-  userThemes = allThemes.filter(theme => !isDefaultTheme(theme))
-})
+    defaultTheme = allThemes.filter(info => info.name === 'Default')
+    if (defaultTheme === []) {
+      for (theme in allThemes) {
+        if (isDefaultTheme(theme)) {
+          defaultTheme = theme
+          break
+        }
+      }
+      logger.log('No default themes found!')
+    }
+
+    defaultThemes = allThemes.filter(isDefaultTheme)
+    userThemes = allThemes.filter(theme => !isDefaultTheme(theme))
+  })
+}
 
 getDefaultThemes = function(request, sender, sendResponse) {
   logger.args(arguments)
@@ -39,8 +42,12 @@ getDefaultThemes = function(request, sender, sendResponse) {
 }
 browser.runtime.onMessage.addListener(getDefaultThemes)
 
+browser.management.onInstalled.addListener(function() {
+  logger.args(arguments)
+  getAllThemes()
+})
+
 /*
-management.onInstalled
     Fired when an add-on is installed.
 management.onUninstalled
     Fired when an add-on is uninstalled.
@@ -58,4 +65,29 @@ function isDefaultTheme (theme) {
     '{972ce4c6-7e08-4474-a285-3208198ce6fd}'
   ].includes(theme.id))
 }
+
+browser.commands.onCommand.addListener(function (command) {
+  logger.log(command)
+  switch (command) {
+    case 'Switch to default theme':
+      activateDefaultTheme()
+      break
+    case 'Rotate to next theme':
+      rotate()
+      break
+    case 'Toggle autoswitching':
+      browser.storage.local.get('auto').then((pref) => {
+        browser.storage.local.set({ auto: !pref.auto })
+          .catch(handleError)
+        logger.log(`Auto: ${!pref.auto}`)
+        // give visual feedback
+        if (pref.auto) rotate()
+      })
+      break
+    default:
+      // should never get here
+      logger.log(`${command} not recognized`)
+      break
+  }
+})
 
