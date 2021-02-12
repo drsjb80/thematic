@@ -17,7 +17,7 @@
             "32": "icons/Thematic32.png",
             "64": "icons/Thematic64.png"
         },
-        "default_popup": "src/popup.html",
+        "default_popup": "popup/popup.html",
         "default_title": "Thematic"
     },
     "commands": {
