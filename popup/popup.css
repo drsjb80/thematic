@@ -1,0 +1,11 @@
+.button {
+  margin: 3% auto;
+  padding: 4px;
+  text-align: center;
+  cursor: pointer;
+  font-family: 'sans-serif';
+}
+
+.button:hover {
+  background-color: #808080;
+}
