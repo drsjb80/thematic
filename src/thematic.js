@@ -38,7 +38,7 @@ function getAllThemes() {
 
 getDefaultThemes = function(request, sender, sendResponse) {
   logger.args(arguments)
-  sendResponse(defaultThemes)
+  sendResponse({default: defaultThemes})
 }
 browser.runtime.onMessage.addListener(getDefaultThemes)
 
