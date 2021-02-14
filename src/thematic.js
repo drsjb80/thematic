@@ -7,14 +7,14 @@ logger.args = function (a) {
 
 logger.log('themematic.js started')
 
-let allThemes
 let defaultTheme
 let defaultThemes
+let userThemes
 
 function getAllThemes() {
   let themePromise = browser.management.getAll()
   themePromise.then ((allExtensions) => {
-    allThemes = allExtensions.filter(info => info.type === 'theme')
+    let allThemes = allExtensions.filter(info => info.type === 'theme')
     if (allThemes === []) {
       logger.log('No themes found!')
       return
@@ -47,13 +47,18 @@ browser.runtime.onMessage.addListener(getThemes)
 browser.management.onInstalled.addListener(function() {
   logger.args(arguments)
   getAllThemes()
+  logger.log(defaultTheme)
+  logger.log(defaultThemes)
+  logger.log(userThemes)
 })
 
-/*
-    Fired when an add-on is installed.
-management.onUninstalled
-    Fired when an add-on is uninstalled.
-*/
+browser.management.onUninstalled.addListener(function() {
+  logger.args(arguments)
+  getAllThemes()
+  logger.log(defaultTheme)
+  logger.log(defaultThemes)
+  logger.log(userThemes)
+})
 
 function isDefaultTheme (theme) {
   logger.args(arguments)
