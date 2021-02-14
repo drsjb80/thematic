@@ -21,7 +21,9 @@ function getAllThemes() {
     }
 
     defaultTheme = allThemes.filter(info => info.name === 'Default')
-    if (defaultTheme === []) {
+    if (defaultTheme !== []) {
+      defaultTheme = defaultTheme[0]
+    } else {
       for (theme in allThemes) {
         if (isDefaultTheme(theme)) {
           defaultTheme = theme
@@ -36,11 +38,11 @@ function getAllThemes() {
   })
 }
 
-getDefaultThemes = function(request, sender, sendResponse) {
+getThemes = function(request, sender, sendResponse) {
   logger.args(arguments)
-  sendResponse({defaultTheme: defaultTheme, defaultThemes: defaultThemes})
+  sendResponse({defaultTheme: defaultTheme, defaultThemes: defaultThemes, userThemes: userThemes})
 }
-browser.runtime.onMessage.addListener(getDefaultThemes)
+browser.runtime.onMessage.addListener(getThemes)
 
 browser.management.onInstalled.addListener(function() {
   logger.args(arguments)

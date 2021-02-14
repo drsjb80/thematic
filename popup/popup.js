@@ -45,8 +45,9 @@ browser.runtime.onMessage.addListener(themesChanged)
 
 document.addEventListener("click", (e) => {
   // get promise resolved before window closes
-  Promise.resolve(browser.storage.local.set({current: e.target.id}))
-  browser.management.setEnabled(e.target.id, true)
-  window.close()
+  browser.storage.local.set({current: e.target.id}).then(() => {
+    browser.management.setEnabled(e.target.id, true)
+    window.close()
+  })
 })
 
