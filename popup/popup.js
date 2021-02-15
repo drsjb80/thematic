@@ -1,16 +1,17 @@
 // vim: ts=2 sw=2 expandtab
 
-let themes
+// this isn't called until popup clicked for the first time
 
 // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/storage/local
-function setToCurrent() {
-  let c = browser.storage.local.get('current')
-  c.then(current => {browser.management.setEnabled(current.current, true)})
-   .catch(current => {browser.management.setEnabled(themes.defaultTheme, true)})
-}
+let current
+browser.storage.local.get('current')
+  .then(initial => { current = initial.current })
+  .catch(console.log)
 
 function handleResponse(message) {
-  themes = message
+  console.log(message)
+
+  console.log(current)
 
   // has to be let, can't be const
   let currentDiv = document.getElementById("popup-content")
@@ -23,29 +24,22 @@ function handleResponse(message) {
       browser.management.setEnabled(e.target.id, true)
     })
     newChoice.addEventListener('mouseleave', (e) => {
-      setToCurrent()
+      browser.management.setEnabled(current, true)
     })
     currentDiv.appendChild(newChoice);
   }
 }
 
-function handleError(error) {
-  console.log(`Error: ${error}`)
-}
+browser.runtime.onMessage.addListener(handleResponse)
 
-// get the initial themes
-let send = browser.runtime.sendMessage({})
-send.then(handleResponse, handleError)
-
-function themesChanged(themes) {
-  // clear out divs
-  // call handleResponse with request
-}
-browser.runtime.onMessage.addListener(themesChanged)
+let myPort = browser.runtime.connect("drsjb80@gmail.com")
+myPort.onMessage.addListener(handleResponse)
+myPort.postMessage()
 
 document.addEventListener("click", (e) => {
   // get promise resolved before window closes
   browser.storage.local.set({current: e.target.id}).then(() => {
+    current = e.target.id
     browser.management.setEnabled(e.target.id, true)
     window.close()
   })

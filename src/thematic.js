@@ -1,3 +1,5 @@
+// vim ts=2 sw=2 expandtab
+
 var logger = console
 const nullLogger = {}
 nullLogger.log = function () {}
@@ -7,11 +9,13 @@ logger.args = function (a) {
 
 logger.log('themematic.js started')
 
-let defaultTheme
-let defaultThemes
-let userThemes
+let myPort
 
-function getAllThemes() {
+function getAllThemes(port) {
+  logger.args(arguments)
+
+  myPort = port
+
   let themePromise = browser.management.getAll()
   themePromise.then ((allExtensions) => {
     let allThemes = allExtensions.filter(info => info.type === 'theme')
@@ -20,7 +24,7 @@ function getAllThemes() {
       return
     }
 
-    defaultTheme = allThemes.filter(info => info.name === 'Default')
+    let defaultTheme = allThemes.filter(info => info.name === 'Default')
     if (defaultTheme !== []) {
       defaultTheme = defaultTheme[0]
     } else {
@@ -33,32 +37,30 @@ function getAllThemes() {
       logger.log('No default themes found!')
     }
 
-    defaultThemes = allThemes.filter(isDefaultTheme)
-    userThemes = allThemes.filter(theme => !isDefaultTheme(theme))
+    let defaultThemes = allThemes.filter(isDefaultTheme)
+    let userThemes = allThemes.filter(theme => !isDefaultTheme(theme))
+
+    port.postMessage({defaultTheme: defaultTheme, defaultThemes: defaultThemes, userThemes: userThemes})
   })
 }
 
-getThemes = function(request, sender, sendResponse) {
-  logger.args(arguments)
-  sendResponse({defaultTheme: defaultTheme, defaultThemes: defaultThemes, userThemes: userThemes})
+browser.runtime.onConnect.addListener(getAllThemes)
+
+function themeInstalled(info) {
+  logger.log(info)
+  if (info.type === 'theme') {
+      getAllThemes(myPort)
+  }
 }
-browser.runtime.onMessage.addListener(getThemes)
+browser.management.onInstalled.addListener(themeInstalled)
 
-browser.management.onInstalled.addListener(function() {
-  logger.args(arguments)
-  getAllThemes()
-  logger.log(defaultTheme)
-  logger.log(defaultThemes)
-  logger.log(userThemes)
-})
-
-browser.management.onUninstalled.addListener(function() {
-  logger.args(arguments)
-  getAllThemes()
-  logger.log(defaultTheme)
-  logger.log(defaultThemes)
-  logger.log(userThemes)
-})
+function themeUninstalled(info) {
+  logger.info(info)
+  if (info.type === 'theme') {
+      getAllThemes(myPort)
+  }
+}
+browser.management.onUninstalled.addListener(themeUninstalled)
 
 function isDefaultTheme (theme) {
   logger.args(arguments)
@@ -75,6 +77,7 @@ function isDefaultTheme (theme) {
 
 browser.commands.onCommand.addListener(function (command) {
   logger.log(command)
+  /*
   switch (command) {
     case 'Switch to default theme':
       activateDefaultTheme()
@@ -96,5 +99,5 @@ browser.commands.onCommand.addListener(function (command) {
       logger.log(`${command} not recognized`)
       break
   }
+  */
 })
-
