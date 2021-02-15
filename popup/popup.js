@@ -2,16 +2,18 @@
 
 // this isn't called until popup clicked for the first time
 
+let currentId
+let themes
+
 // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/storage/local
-let current
-browser.storage.local.get('current')
-  .then(initial => { current = initial.current })
+browser.storage.local.get('currentId')
+  .then(initial => { currentId = initial.currentId })
   .catch(console.log)
+
 
 function handleResponse(message) {
   console.log(message)
-
-  console.log(current)
+  themes = message.defaultThemes // change to userThemes
 
   // has to be let, can't be const
   let currentDiv = document.getElementById("popup-content")
@@ -24,7 +26,7 @@ function handleResponse(message) {
       browser.management.setEnabled(e.target.id, true)
     })
     newChoice.addEventListener('mouseleave', (e) => {
-      browser.management.setEnabled(current, true)
+      browser.management.setEnabled(currentId, true)
     })
     currentDiv.appendChild(newChoice);
   }
@@ -34,13 +36,32 @@ browser.runtime.onMessage.addListener(handleResponse)
 
 let myPort = browser.runtime.connect("drsjb80@gmail.com")
 myPort.onMessage.addListener(handleResponse)
-myPort.postMessage()
+myPort.postMessage() // need to initiate where the connect is
+
+function rotate() {
+  if (themes.length < 2) {
+    return
+  }
+
+  currentIndex = themes.findIndex((t) => t.id === currentId)
+  if (currentIndex === -1) {
+    console.log('Theme index not found')
+    return
+  }
+
+  currentIndex = (currentIndex + 1) % themes.length
+  currentId = themes[currentIndex].id
+
+  browser.storage.local.set({currentId: currentId}).then(() => {
+    browser.management.setEnabled(currentId, true)
+  })
+}
 
 document.addEventListener("click", (e) => {
-  // get promise resolved before window closes
-  browser.storage.local.set({current: e.target.id}).then(() => {
-    current = e.target.id
+  currentId = e.target.id
+  browser.storage.local.set({currentId: currentId}).then(() => {
     browser.management.setEnabled(e.target.id, true)
+    // get promise resolved before window closes
     window.close()
   })
 })

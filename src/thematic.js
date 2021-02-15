@@ -5,6 +5,7 @@ const nullLogger = {}
 nullLogger.log = function () {}
 logger.args = function (a) {
   logger.log(a.callee.name + ': ' + Array.from(a))
+  // Array.from(a).forEach(e => logger.log(e))
 }
 
 logger.log('themematic.js started')
@@ -21,6 +22,8 @@ function getAllThemes(port) {
     let allThemes = allExtensions.filter(info => info.type === 'theme')
     if (allThemes === []) {
       logger.log('No themes found!')
+      port.postMessage({defaultTheme: undefined, defaultThemes: undefined,
+        userThemes: undefined})
       return
     }
 
@@ -34,13 +37,12 @@ function getAllThemes(port) {
           break
         }
       }
-      logger.log('No default themes found!')
+      logger.log('No default theme found!')
     }
 
-    let defaultThemes = allThemes.filter(isDefaultTheme)
-    let userThemes = allThemes.filter(theme => !isDefaultTheme(theme))
-
-    port.postMessage({defaultTheme: defaultTheme, defaultThemes: defaultThemes, userThemes: userThemes})
+    port.postMessage({defaultTheme: defaultTheme,
+      defaultThemes: allThemes.filter(isDefaultTheme),
+      userThemes: allThemes.filter(theme => !isDefaultTheme(theme))})
   })
 }
 
