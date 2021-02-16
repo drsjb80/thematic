@@ -38,7 +38,7 @@ function buildMenu(message) {
     currentDiv.removeChild(currentDiv.firstChild);
   }
 
-  for (theme of message.userThemes) {
+  for (let theme of message.userThemes) {
     currentDiv.appendChild(buildMenuItem(theme))
   }
 
@@ -46,7 +46,7 @@ function buildMenu(message) {
     currentDiv.appendChild(document.createElement('hr'))
   }
 
-  for (theme of message.defaultThemes) {
+  for (let theme of message.defaultThemes) {
     currentDiv.appendChild(buildMenuItem(theme))
   }
 }

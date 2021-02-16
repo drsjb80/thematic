@@ -35,7 +35,7 @@ function loadOptions () {
 // https://developer.mozilla.org/en-US/docs/Displaying_web_content_in_an_extension_without_security_issues
 function localizeHtmlPage () {
   console.args(arguments)
-  for (const obj of document.getElementsByName('i18n')) {
+  for (let obj of document.getElementsByName('i18n')) {
     obj.textContent = browser.i18n.getMessage(obj.id.toString())
   }
 }

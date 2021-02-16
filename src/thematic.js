@@ -59,14 +59,7 @@ function extensionInstalled (info) {
   }
 }
 browser.management.onInstalled.addListener(extensionInstalled)
-
-function extensionUninstalled (info) {
-  console.args(arguments)
-  if (info.type === 'theme') {
-    buildThemes()
-  }
-}
-browser.management.onUninstalled.addListener(extensionUninstalled)
+browser.management.onUninstalled.addListener(extensionInstalled)
 
 function isDefaultTheme (theme) {
   console.args(arguments)
