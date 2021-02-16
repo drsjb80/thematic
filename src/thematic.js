@@ -10,12 +10,12 @@ logger.args = function (a) {
 
 logger.log('themematic.js started')
 
-let myPort
+let defaultTheme
+let defaultThemes
+let userThemes
 
-function getAllThemes(port) {
+function buildThemes() {
   logger.args(arguments)
-
-  myPort = port
 
   let themePromise = browser.management.getAll()
   themePromise.then ((allExtensions) => {
@@ -27,7 +27,7 @@ function getAllThemes(port) {
       return
     }
 
-    let defaultTheme = allThemes.filter(info => info.name === 'Default')
+    defaultTheme = allThemes.filter(info => info.name === 'Default')
     if (defaultTheme !== []) {
       defaultTheme = defaultTheme[0]
     } else {
@@ -39,19 +39,24 @@ function getAllThemes(port) {
       }
       logger.log('No default theme found!')
     }
-
-    port.postMessage({defaultTheme: defaultTheme,
-      defaultThemes: allThemes.filter(isDefaultTheme),
-      userThemes: allThemes.filter(theme => !isDefaultTheme(theme))})
+    defaultThemes = allThemes.filter(isDefaultTheme)
+    userThemes = allThemes.filter(theme => !isDefaultTheme(theme))
   })
 }
 
+buildThemes()
+
+function getAllThemes(port) {
+  port.postMessage({defaultTheme: defaultTheme,
+    defaultThemes: defaultThemes,
+    userThemes: userThemes})
+}
 browser.runtime.onConnect.addListener(getAllThemes)
 
 function themeInstalled(info) {
   logger.log(info)
   if (info.type === 'theme') {
-      getAllThemes(myPort)
+      buildThemes()
   }
 }
 browser.management.onInstalled.addListener(themeInstalled)
@@ -59,7 +64,7 @@ browser.management.onInstalled.addListener(themeInstalled)
 function themeUninstalled(info) {
   logger.info(info)
   if (info.type === 'theme') {
-      getAllThemes(myPort)
+      buildThemes()
   }
 }
 browser.management.onUninstalled.addListener(themeUninstalled)
@@ -77,14 +82,45 @@ function isDefaultTheme (theme) {
   ].includes(theme.id))
 }
 
-browser.commands.onCommand.addListener(function (command) {
+function rotate() {
+  if (defaultThemes.length < 2) {
+    return
+  }
+
+  browser.storage.local.get('currentId')
+    .then (function(c) {
+      let currentId = c.currentId
+      logger.log(currentId)
+
+      let currentIndex = defaultThemes.findIndex((t) => t.id === currentId)
+      if (currentIndex === -1) {
+        console.log('Theme index not found')
+        return
+      }
+
+      currentIndex = (currentIndex + 1) % defaultThemes.length
+      currentId = defaultThemes[currentIndex].id
+
+      browser.storage.local.set({currentId: currentId}).then(() => {
+        browser.management.setEnabled(currentId, true)
+      })
+    })
+  .catch(console.log)
+}
+
+browser.alarms.create('rotate', {periodInMinutes: 1})
+browser.alarms.onAlarm.addListener(rotate);
+
+function commands(command) {
   logger.log(command)
-  /*
   switch (command) {
     case 'Switch to default theme':
-      activateDefaultTheme()
+      browser.storage.local.set({currentId: defaultTheme.id}).then(() => {
+        browser.management.setEnabled(defaultTheme.id, true)
+      })
       break
     case 'Rotate to next theme':
+      logger.log()
       rotate()
       break
     case 'Toggle autoswitching':
@@ -101,5 +137,5 @@ browser.commands.onCommand.addListener(function (command) {
       logger.log(`${command} not recognized`)
       break
   }
-  */
-})
+}
+browser.commands.onCommand.addListener(commands)
