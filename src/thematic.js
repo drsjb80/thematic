@@ -1,27 +1,28 @@
+/* global browser */
 // vim: ts=2 sw=2 expandtab
 
-var logger = console
-const nullLogger = {}
-nullLogger.log = function () {}
-logger.args = function (a) { logger.log(a.callee.name + ': ' + Array.from(a)) }
+console.args = function (a){ console.log(a.callee.name + ': ' + Array.from(a)) }
 
-logger.log('themematic.js started')
+console.log('themematic.js started')
 
 let themes
 let userThemes
 let defaultTheme
 let defaultThemes
 
-function buildThemes() {
-  logger.args(arguments)
+function buildThemes () {
+  console.args(arguments)
 
-  let themePromise = browser.management.getAll()
-  themePromise.then ((allExtensions) => {
-    let allThemes = allExtensions.filter(info => info.type === 'theme')
+  const themePromise = browser.management.getAll()
+  themePromise.then((allExtensions) => {
+    const allThemes = allExtensions.filter(info => info.type === 'theme')
     if (allThemes === []) {
-      logger.log('No themes found!')
-      port.postMessage({defaultTheme: undefined, defaultThemes: undefined,
-        userThemes: undefined})
+      console.log('No themes found!')
+      themes = {
+        defaultTheme: undefined,
+        defaultThemes: undefined,
+        userThemes: undefined
+      }
       return
     }
 
@@ -29,50 +30,46 @@ function buildThemes() {
     if (defaultTheme !== []) {
       defaultTheme = defaultTheme[0]
     } else {
-      for (theme in allThemes) {
+      for (const theme in allThemes) {
         if (isDefaultTheme(theme)) {
           defaultTheme = theme
           break
         }
       }
-      logger.log('No default theme found!')
+      console.log('No default theme found!')
     }
 
     defaultThemes = allThemes.filter(isDefaultTheme)
     userThemes = allThemes.filter(theme => !isDefaultTheme(theme))
 
-    themes = {defaultTheme: defaultTheme,
+    themes = {
+      defaultTheme: defaultTheme,
       defaultThemes: defaultThemes,
-      userThemes: userThemes}
+      userThemes: userThemes
+    }
   })
 }
 
 buildThemes()
 
-function getAllThemes(port) {
-  logger.args(arguments)
-  port.postMessage(themes)
-}
-browser.runtime.onConnect.addListener(getAllThemes)
-
-function extensionInstalled(info) {
-  logger.args(arguments)
+function extensionInstalled (info) {
+  console.args(arguments)
   if (info.type === 'theme') {
-      buildThemes()
+    buildThemes()
   }
 }
 browser.management.onInstalled.addListener(extensionInstalled)
 
-function extensionUninstalled(info) {
-  logger.args(arguments)
+function extensionUninstalled (info) {
+  console.args(arguments)
   if (info.type === 'theme') {
-      buildThemes()
+    buildThemes()
   }
 }
 browser.management.onUninstalled.addListener(extensionUninstalled)
 
 function isDefaultTheme (theme) {
-  logger.args(arguments)
+  console.args(arguments)
   return ([
     'firefox-compact-dark@mozilla.org@personas.mozilla.org',
     'firefox-compact-light@mozilla.org@personas.mozilla.org',
@@ -84,14 +81,14 @@ function isDefaultTheme (theme) {
   ].includes(theme.id))
 }
 
-function rotate() {
-  logger.args(arguments)
+function rotate () {
+  console.args(arguments)
 
   if (userThemes.length <= 1) {
     return
   }
 
-  browser.storage.local.get('currentId').then ((c) => {
+  browser.storage.local.get('currentId').then((c) => {
     let currentId = c.currentId
 
     let currentIndex = userThemes.findIndex((t) => t.id === currentId)
@@ -102,73 +99,77 @@ function rotate() {
     browser.storage.sync.get('random').then((pref) => {
       if (pref.random) {
         let newIndex = currentIndex
-        logger.log(currentIndex)
+        console.log(currentIndex)
         while (newIndex === currentIndex) {
-          let a = Math.floor(Math.random() * userThemes.length)
-          logger.log(a)
+          const a = Math.floor(Math.random() * userThemes.length)
+          console.log(a)
           newIndex = a
         }
         currentIndex = newIndex
-        logger.log(currentIndex)
+        console.log(currentIndex)
       } else {
         currentIndex = (currentIndex + 1) % userThemes.length
       }
       currentId = userThemes[currentIndex].id
 
-      browser.storage.local.set({currentId: currentId}).then(() => {
+      browser.storage.local.set({ currentId: currentId }).then(() => {
         browser.management.setEnabled(currentId, true)
       })
     }).catch(console.log)
   }).catch(console.log)
-  .catch(console.log)
+    .catch(console.log)
 }
-browser.alarms.onAlarm.addListener(rotate);
+browser.alarms.onAlarm.addListener(rotate)
 
-function startRotation() {
-  logger.args(arguments)
+function startRotation () {
+  console.args(arguments)
   browser.storage.sync.set({ auto: true }).then(() => {
     browser.alarms.clear('rotate')
     browser.storage.sync.get('autoMinutes').then(a => {
-      browser.alarms.create('rotate', {periodInMinutes: a.autoMinutes})
+      browser.alarms.create('rotate', { periodInMinutes: a.autoMinutes })
     })
   })
 }
 
-function stopRotation() {
-  logger.args(arguments)
+function stopRotation () {
+  console.args(arguments)
   browser.storage.sync.set({ auto: false }).then(() => {
     browser.alarms.clear('rotate')
   })
 }
 
 browser.storage.sync.get('auto').then((pref) => {
-  logger.log(pref)
+  console.log(pref)
   if (pref.auto) {
     startRotation()
   }
 })
 
-function handleMessage(request, sender, sendResponse) {
-  console.log("Message from the content script: " + request.message);
+function handleMessage (request, sender, sendResponse) {
+  console.log('Message from the content script: ' + request.message)
   switch (request.message) {
     case 'Start rotation':
       startRotation()
+      sendResponse({ response: 'OK' })
       break
     case 'Stop rotation':
       stopRotation()
+      sendResponse({ response: 'OK' })
+      break
+    case 'Get all themes':
+      sendResponse(themes)
       break
     default:
-      logger.log('Unknown message sent')
+      console.log('Unknown message received')
   }
-  sendResponse({response: "OK"})
 }
-browser.runtime.onMessage.addListener(handleMessage);
+browser.runtime.onMessage.addListener(handleMessage)
 
-function commands(command) {
-  logger.args(arguments)
+function commands (command) {
+  console.args(arguments)
   switch (command) {
     case 'Switch to default theme':
-      browser.storage.local.set({currentId: defaultTheme.id}).then(() => {
+      browser.storage.local.set({ currentId: defaultTheme.id }).then(() => {
         browser.management.setEnabled(defaultTheme.id, true)
       })
       break
@@ -184,12 +185,12 @@ function commands(command) {
           rotate()
         }
         browser.storage.sync.set({ auto: !pref.auto })
-        .catch(console.log)
+          .catch(console.log)
       })
       break
     default:
       // should never get here
-      logger.log(`${command} not recognized`)
+      console.log(`${command} not recognized`)
       break
   }
 }

@@ -1,27 +1,16 @@
 /* global browser */
 // vim: ts=2 sw=2 expandtab
 
-const logger = console
-logger.args = function (a) { logger.log(a.callee.name + ': ' + Array.from(a)) }
+console.args = function (a) { console.log(a.callee.name + ': ' + Array.from(a)) }
 
 const preferences = ['auto', 'autoMinutes', 'random']
 
 const autoElement = document.querySelector('#auto')
 const autoMinutesElement = document.querySelector('#auto-minutes')
 const randomElement = document.querySelector('#random')
-/*
-var previewElement = document.querySelector("#preview");
-var startupSwitchElement = document.querySelector("#startup-switch");
-var iconPreviewElement = document.querySelector("#icon-preview");
-var toolsMenuElement = document.querySelector("#tools-menu");
-*/
-
-function onError (error) {
-  console.log(error)
-}
 
 function saveOptions (e) {
-  logger.args(arguments)
+  console.args(arguments)
   e.preventDefault()
   browser.storage.sync.set({
     auto: autoElement.checked,
@@ -29,13 +18,13 @@ function saveOptions (e) {
     random: randomElement.checked
   }).then(() => {
     const message = autoElement.checked ? 'Start rotation' : 'Stop rotation'
-    browser.runtime.sendMessage({message: message})
+    browser.runtime.sendMessage({ message: message })
       .then(console.log, console.log)
   }).catch(console.log)
 }
 
 function loadOptions () {
-  logger.args(arguments)
+  console.args(arguments)
   browser.storage.sync.get(preferences).then((prefs) => {
     autoElement.checked = prefs.auto
     autoMinutesElement.value = prefs.autoMinutes
@@ -45,8 +34,7 @@ function loadOptions () {
 
 // https://developer.mozilla.org/en-US/docs/Displaying_web_content_in_an_extension_without_security_issues
 function localizeHtmlPage () {
-  logger.args(arguments)
-  logger.log(document.getElementsByName('i18n'))
+  console.args(arguments)
   for (const obj of document.getElementsByName('i18n')) {
     obj.textContent = browser.i18n.getMessage(obj.id.toString())
   }
