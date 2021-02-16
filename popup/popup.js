@@ -10,6 +10,17 @@ browser.storage.local.get('currentId')
   .then(initial => { currentId = initial.currentId })
   .catch(console.log)
 
+function buildMenuItem(theme) {
+  let newChoice = document.createElement("div")
+  newChoice.setAttribute('id', theme.id)
+  newChoice.setAttribute('class', 'button')
+  newChoice.textContent = theme.name
+  newChoice.addEventListener('mouseenter', (e) => {
+    browser.management.setEnabled(e.target.id, true)
+  })
+  return newChoice
+}
+
 function buildMenu(message) {
   console.log(message)
 
@@ -23,15 +34,11 @@ function buildMenu(message) {
     currentDiv.removeChild(currentDiv.firstChild);
   }
 
+  for (theme of message.userThemes) {
+    currentDiv.appendChild(buildMenuItem(theme))
+  }
   for (theme of message.defaultThemes) {
-    let newChoice = document.createElement("div")
-    newChoice.setAttribute('id', theme.id)
-    newChoice.setAttribute('class', 'button')
-    newChoice.textContent = theme.name
-    newChoice.addEventListener('mouseenter', (e) => {
-      browser.management.setEnabled(e.target.id, true)
-    })
-    currentDiv.appendChild(newChoice);
+    currentDiv.appendChild(buildMenuItem(theme))
   }
 }
 

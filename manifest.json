@@ -51,7 +51,7 @@
     "name": "__MSG_extensionName__",
     "options_ui": {
         "browser_style": true,
-        "page": "preferences/options.html"
+        "page": "src/options.html"
     },
     "permissions": [
         "storage",
