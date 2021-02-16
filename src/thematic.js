@@ -87,47 +87,58 @@ function isDefaultTheme (theme) {
 function rotate() {
   logger.args(arguments)
 
-  if (userThemes.length <= 0) {
+  if (userThemes.length <= 1) {
     return
   }
 
-  browser.storage.local.get('currentId')
-    .then (function(c) {
-      let currentId = c.currentId
+  browser.storage.local.get('currentId').then ((c) => {
+    let currentId = c.currentId
 
-      let currentIndex = userThemes.findIndex((t) => t.id === currentId)
-      if (currentIndex === -1) {
-        console.log('User theme index not found')
-        /*
-          complete hack:
-          1) we know there is at least one user theme from above.
-          2) the currentId must be a default them or we would have found it.
-          3) set currentIndex to -1 as it will be incremented to 0 below.
-        */
-        currentIndex = -1
+    let currentIndex = userThemes.findIndex((t) => t.id === currentId)
+    if (currentIndex === -1) {
+      console.log('User theme index not found')
+    }
+
+    browser.storage.sync.get('random').then((pref) => {
+      if (pref.random) {
+        let newIndex = currentIndex
+        logger.log(currentIndex)
+        while (newIndex === currentIndex) {
+          let a = Math.floor(Math.random() * userThemes.length)
+          logger.log(a)
+          newIndex = a
+        }
+        currentIndex = newIndex
+        logger.log(currentIndex)
+      } else {
+        currentIndex = (currentIndex + 1) % userThemes.length
       }
-
-      currentIndex = (currentIndex + 1) % userThemes.length
       currentId = userThemes[currentIndex].id
 
       browser.storage.local.set({currentId: currentId}).then(() => {
         browser.management.setEnabled(currentId, true)
       })
-    })
+    }).catch(console.log)
+  }).catch(console.log)
   .catch(console.log)
 }
+browser.alarms.onAlarm.addListener(rotate);
 
 function startRotation() {
   logger.args(arguments)
-  browser.storage.sync.get('auto').then((pref) => {
-    browser.alarms.create('rotate', {periodInMinutes: 1})
-    browser.alarms.onAlarm.addListener(rotate);
+  browser.storage.sync.set({ auto: true }).then(() => {
+    browser.alarms.clear('rotate')
+    browser.storage.sync.get('autoMinutes').then(a => {
+      browser.alarms.create('rotate', {periodInMinutes: a.autoMinutes})
+    })
   })
 }
 
 function stopRotation() {
   logger.args(arguments)
-  browser.alarms.clear('rotate')
+  browser.storage.sync.set({ auto: false }).then(() => {
+    browser.alarms.clear('rotate')
+  })
 }
 
 browser.storage.sync.get('auto').then((pref) => {
@@ -136,6 +147,22 @@ browser.storage.sync.get('auto').then((pref) => {
     startRotation()
   }
 })
+
+function handleMessage(request, sender, sendResponse) {
+  console.log("Message from the content script: " + request.message);
+  switch (request.message) {
+    case 'Start rotation':
+      startRotation()
+      break
+    case 'Stop rotation':
+      stopRotation()
+      break
+    default:
+      logger.log('Unknown message sent')
+  }
+  sendResponse({response: "OK"})
+}
+browser.runtime.onMessage.addListener(handleMessage);
 
 function commands(command) {
   logger.args(arguments)
@@ -158,7 +185,7 @@ function commands(command) {
         }
         browser.storage.sync.set({ auto: !pref.auto })
         .catch(console.log)
-        })
+      })
       break
     default:
       // should never get here

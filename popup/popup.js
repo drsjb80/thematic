@@ -37,6 +37,11 @@ function buildMenu(message) {
   for (theme of message.userThemes) {
     currentDiv.appendChild(buildMenuItem(theme))
   }
+
+  if (message.userThemes.length != 0) {
+    currentDiv.appendChild(document.createElement('hr'))
+  }
+
   for (theme of message.defaultThemes) {
     currentDiv.appendChild(buildMenuItem(theme))
   }
