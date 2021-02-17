@@ -5,13 +5,6 @@ console.args = function (a){ console.log(a.callee.name + ': ' + Array.from(a)) }
 // this isn't called until popup clicked for the first time and it
 // disappears every time the popup disappears.
 
-let currentId
-
-// https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/storage/local
-browser.storage.local.get('currentId')
-  .then(initial => { currentId = initial.currentId })
-  .catch(console.log)
-
 function buildMenuItem(theme) {
   console.args(arguments)
 
@@ -31,7 +24,8 @@ function buildMenu(message) {
   // has to be let, can't be const
   let currentDiv = document.getElementById("popup-content")
   currentDiv.addEventListener('mouseleave', (e) => {
-    browser.management.setEnabled(currentId, true)
+    console.log(message)
+    browser.management.setEnabled(message.currentId, true)
   })
 
   while (currentDiv.firstChild) {
@@ -57,9 +51,13 @@ browser.runtime.sendMessage({message: 'Get all themes'}).then((m) => {
 
 document.addEventListener("click", (e) => {
   currentId = e.target.id
+  console.log('Setting currentId to: ' + currentId)
   browser.storage.local.set({currentId: currentId}).then(() => {
     browser.management.setEnabled(currentId, true)
-    // get promise resolved before window closes to avoid a warning.
-    window.close()
-  })
+
+    browser.runtime.sendMessage({message: 'Rebuild themes'}).then(() => {
+      // get promise resolved before window closes to avoid a warning.
+      window.close()
+    }).catch(console.log)
+  }).catch(console.log)
 })

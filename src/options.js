@@ -27,7 +27,7 @@ function loadOptions () {
   console.args(arguments)
   browser.storage.sync.get(preferences).then((prefs) => {
     autoElement.checked = prefs.auto
-    autoMinutesElement.value = prefs.autoMinutes
+    autoMinutesElement.value = prefs.autoMinutes === undefined ? 30 : prefs.autoMinutes
     randomElement.checked = prefs.random
   }).catch(console.log)
 }

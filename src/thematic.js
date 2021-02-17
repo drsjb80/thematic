@@ -19,7 +19,7 @@ function buildThemes () {
     if (allThemes === []) {
       console.log('No themes found!')
       themes = {
-        defaultTheme: undefined,
+        currentId: undefined,
         defaultThemes: undefined,
         userThemes: undefined
       }
@@ -39,14 +39,25 @@ function buildThemes () {
       console.log('No default theme found!')
     }
 
+    console.log(allThemes)
     defaultThemes = allThemes.filter(isDefaultTheme)
     userThemes = allThemes.filter(theme => !isDefaultTheme(theme))
 
-    themes = {
-      defaultTheme: defaultTheme,
-      defaultThemes: defaultThemes,
-      userThemes: userThemes
-    }
+    browser.storage.local.get('currentId').then((c) => {
+      console.log(c)
+      let currentId
+      if (c === undefined) {
+        currentId = defaultTheme.id
+      } else {
+        currentId = c.currentId
+      }
+
+      themes = {
+        currentId: currentId,
+        defaultThemes: defaultThemes,
+        userThemes: userThemes
+      }
+    })
   })
 }
 
@@ -139,7 +150,7 @@ browser.storage.sync.get('auto').then((pref) => {
 })
 
 function handleMessage (request, sender, sendResponse) {
-  console.log('Message from the content script: ' + request.message)
+  console.log('Message from the popup script: ' + request.message)
   switch (request.message) {
     case 'Start rotation':
       startRotation()
@@ -151,6 +162,9 @@ function handleMessage (request, sender, sendResponse) {
       break
     case 'Get all themes':
       sendResponse(themes)
+      break
+    case 'Rebuild themes':
+      buildThemes()
       break
     default:
       console.log('Unknown message received')
