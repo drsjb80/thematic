@@ -46,7 +46,7 @@ function buildThemes () {
     browser.storage.local.get('currentId').then((c) => {
       console.log(c)
       let currentId
-      if (c === undefined) {
+      if (Object.keys(c).length === 0) {
         currentId = defaultTheme.id
       } else {
         currentId = c.currentId
