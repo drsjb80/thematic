@@ -40,7 +40,7 @@ function buildThemes () {
     }
 
     console.log(allThemes)
-    defaultThemes = allThemes.filter(isDefaultTheme)
+    defaultThemes = allThemes.filter(theme => isDefaultTheme(theme))
     userThemes = allThemes.filter(theme => !isDefaultTheme(theme))
 
     browser.storage.local.get('currentId').then((c) => {
@@ -51,14 +51,15 @@ function buildThemes () {
       } else {
         currentId = c.currentId
       }
+      console.log('currentId: ' + currentId)
 
       themes = {
         currentId: currentId,
         defaultThemes: defaultThemes,
         userThemes: userThemes
       }
-    })
-  })
+    }).catch(console.log)
+  }).catch(console.log)
 }
 
 buildThemes()
@@ -74,7 +75,6 @@ browser.management.onUninstalled.addListener(extensionInstalled)
 
 function isDefaultTheme (theme) {
   console.args(arguments)
-  console.log(theme)
   let a = [
     'firefox-compact-dark@mozilla.org@personas.mozilla.org',
     'firefox-compact-light@mozilla.org@personas.mozilla.org',
@@ -86,7 +86,6 @@ function isDefaultTheme (theme) {
     'thunderbird-compact-light@mozilla.org',
     '{972ce4c6-7e08-4474-a285-3208198ce6fd}'
   ].includes(theme.id)
-  console.log(a)
   return a
 }
 
