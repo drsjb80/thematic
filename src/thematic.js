@@ -74,15 +74,20 @@ browser.management.onUninstalled.addListener(extensionInstalled)
 
 function isDefaultTheme (theme) {
   console.args(arguments)
-  return ([
+  console.log(theme)
+  let a = [
     'firefox-compact-dark@mozilla.org@personas.mozilla.org',
     'firefox-compact-light@mozilla.org@personas.mozilla.org',
     'firefox-compact-dark@mozilla.org',
     'firefox-compact-light@mozilla.org',
     'default-theme@mozilla.org',
     'firefox-alpenglow@mozilla.org',
+    'thunderbird-compact-dark@mozilla.org',
+    'thunderbird-compact-light@mozilla.org',
     '{972ce4c6-7e08-4474-a285-3208198ce6fd}'
-  ].includes(theme.id))
+  ].includes(theme.id)
+  console.log(a)
+  return a
 }
 
 function rotate () {
