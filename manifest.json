@@ -60,5 +60,5 @@
         "management"
     ],
     "short_name": "__MSG_extensionShortName__",
-    "version": "7.0.0-beta01"
+    "version": "7.0.0.1"
 }

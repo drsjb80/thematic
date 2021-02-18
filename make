@@ -18,3 +18,4 @@ zip thematic.zip \
     icons/Thematic48.png \
     icons/Thematic64.png \
     manifest.json \
+    make

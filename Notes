@@ -9,3 +9,5 @@ https://developer.thunderbird.net/add-ons/mailextensions
 https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/menus/ContextType
 tools_menu
 
+https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/version/format
+https://developer.chrome.com/docs/extensions/mv2/manifest/version/
