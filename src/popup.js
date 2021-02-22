@@ -36,7 +36,7 @@ function buildMenu(message) {
     currentDiv.appendChild(buildMenuItem(theme))
   }
 
-  if (message.userThemes.length != 0) {
+  if (message.userThemes.length !== 0) {
     currentDiv.appendChild(document.createElement('hr'))
   }
 
