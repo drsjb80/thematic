@@ -26,6 +26,7 @@ function buildThemes () {
       return
     }
 
+    // getDefaultTheme
     defaultTheme = allThemes.filter(info => info.name === 'Default')
     if (defaultTheme !== []) {
       defaultTheme = defaultTheme[0]
@@ -206,3 +207,41 @@ function commands (command) {
   }
 }
 browser.commands.onCommand.addListener(commands)
+
+browser.menus.removeAll().then(() => {
+  for (let theme of userThemes) {
+    browser.menus.create({
+      id: theme.id,
+      type: 'normal',
+      title: theme.name,
+      contexts: ["tools_menu"]
+    })
+  }
+
+  if (userThemes.length != 0) {
+    browser.menus.create({
+      type: 'separator',
+      contexts: ["tools_menu"]
+    })
+  }
+
+  for (let theme of defaultThemes) {
+    browser.menus.create({
+      id: theme.id,
+      type: 'normal',
+      title: theme.name,
+      contexts: ["tools_menu"]
+    })
+  }
+})
+browser.menus.onClicked.addListener((info) => {
+  console.log(info)
+  currentId = info.menuItemId
+  console.log('Setting currentId to: ' + currentId)
+  browser.storage.local.set({currentId: currentId}).then(() => {
+    browser.management.setEnabled(currentId, true).then(() => {
+      buildThemes ()
+    })
+  })
+})
+
