@@ -31,8 +31,7 @@
         "description": "Text displayed in the options pane",
         "message": "Advanced Options"
     },
-    "options_autoevery_minutes": {
-        "description": "Text displayed in the options pane",
+    "minutes": {
         "message": "minutes, between 1 and 999."
     },
     "options_autoevery_switch": {

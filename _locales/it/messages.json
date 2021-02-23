@@ -35,7 +35,7 @@
         "description": "Text displayed in the options pane",
         "message": "Values between 1 and 999"
     },
-    "options_autoevery_minutes": {
+    "minutes": {
         "description": "Text displayed in the options pane",
         "message": "Minuti/o."
     },

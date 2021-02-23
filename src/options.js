@@ -3,21 +3,21 @@
 
 console.args = function (a) { console.log(a.callee.name + ': ' + Array.from(a)) }
 
-const preferences = ['auto', 'autoMinutes', 'random']
+const preferences = ['auto', 'minutes', 'random']
 
-const autoElement = document.querySelector('#auto')
-const autoMinutesElement = document.querySelector('#auto-minutes')
-const randomElement = document.querySelector('#random')
+const auto = document.querySelector('#auto')
+const minutes = document.querySelector('#minutes')
+const random = document.querySelector('#random')
 
 function saveOptions (e) {
   console.args(arguments)
   e.preventDefault()
   browser.storage.sync.set({
-    auto: autoElement.checked,
-    autoMinutes: parseInt(autoMinutesElement.value),
-    random: randomElement.checked
+    auto: auto.checked,
+    minutes: parseInt(minutes.value),
+    random: random.checked
   }).then(() => {
-    const message = autoElement.checked ? 'Start rotation' : 'Stop rotation'
+    const message = auto.checked ? 'Start rotation' : 'Stop rotation'
     browser.runtime.sendMessage({ message: message })
       .then(console.log, console.log)
   }).catch(console.log)
@@ -26,9 +26,9 @@ function saveOptions (e) {
 function loadOptions () {
   console.args(arguments)
   browser.storage.sync.get(preferences).then((prefs) => {
-    autoElement.checked = prefs.auto
-    autoMinutesElement.value = prefs.autoMinutes === undefined ? 30 : prefs.autoMinutes
-    randomElement.checked = prefs.random
+    auto.checked = prefs.auto
+    minutes.value = prefs.minutes === undefined ? 30 : prefs.minutes
+    random.checked = prefs.random
   }).catch(console.log)
 }
 

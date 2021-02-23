@@ -87,7 +87,7 @@
         "message": "每当经过",
         "description": "Text displayed in the options pane"
     },
-    "options_autoevery_minutes": {
+    "minutes": {
         "message": "分钟时轮换",
         "description": "Text displayed in the options pane"
     },
