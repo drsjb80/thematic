@@ -1,2 +1,4 @@
 npx web-ext run
 npx web-ext sign --api-key=$AMO_JWT_ISSUER --api-secret=$AMO_JWT_SECRET
+
+npm install --save-dev sinon webextensions-api-mock

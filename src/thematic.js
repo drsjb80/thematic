@@ -13,8 +13,8 @@ let defaultThemes
 function buildThemes () {
   console.args(arguments)
 
-  const themePromise = browser.management.getAll()
-  themePromise.then((allExtensions) => {
+  console.log(browser.management)
+  browser.management.getAll().then((allExtensions) => {
     const allThemes = allExtensions.filter(info => info.type === 'theme')
     if (allThemes === []) {
       console.log('No themes found!')
@@ -205,4 +205,3 @@ function commands (command) {
       break
   }
 }
-browser.commands.onCommand.addListener(commands)
