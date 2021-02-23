@@ -10,12 +10,28 @@ let userThemes
 let defaultTheme
 let defaultThemes
 
+function setDefaultTheme(allThemes) {
+  defaultTheme = allThemes.filter(info => info.name === 'Default')
+  if (defaultTheme !== []) {
+    defaultTheme = defaultTheme[0]
+  } else {
+    for (const theme in allThemes) {
+      if (isDefaultTheme(theme)) {
+        defaultTheme = theme
+        break
+      }
+    }
+    console.log('No default theme found!')
+  }
+}
+
 function buildThemes () {
   console.args(arguments)
 
-  console.log(browser.management)
   browser.management.getAll().then((allExtensions) => {
     const allThemes = allExtensions.filter(info => info.type === 'theme')
+    console.log(allThemes)
+
     if (allThemes === []) {
       console.log('No themes found!')
       themes = {
@@ -26,20 +42,7 @@ function buildThemes () {
       return
     }
 
-    defaultTheme = allThemes.filter(info => info.name === 'Default')
-    if (defaultTheme !== []) {
-      defaultTheme = defaultTheme[0]
-    } else {
-      for (const theme in allThemes) {
-        if (isDefaultTheme(theme)) {
-          defaultTheme = theme
-          break
-        }
-      }
-      console.log('No default theme found!')
-    }
-
-    console.log(allThemes)
+    setDefaultTheme(allThemes)
     defaultThemes = allThemes.filter(theme => isDefaultTheme(theme))
     userThemes = allThemes.filter(theme => !isDefaultTheme(theme))
 
@@ -125,7 +128,6 @@ function rotate () {
       })
     }).catch(console.log)
   }).catch(console.log)
-    .catch(console.log)
 }
 browser.alarms.onAlarm.addListener(rotate)
 
@@ -154,7 +156,7 @@ browser.storage.sync.get('auto').then((pref) => {
 })
 
 function handleMessage (request, sender, sendResponse) {
-  console.log('Message from the popup script: ' + request.message)
+  console.log('Message from the popup or options script: ' + request.message)
   switch (request.message) {
     case 'Start rotation':
       startRotation()
@@ -205,3 +207,44 @@ function commands (command) {
       break
   }
 }
+<<<<<<< HEAD
+=======
+browser.commands.onCommand.addListener(commands)
+
+browser.menus.removeAll().then(() => {
+  for (let theme of userThemes) {
+    browser.menus.create({
+      id: theme.id,
+      type: 'normal',
+      title: theme.name,
+      contexts: ["tools_menu"]
+    })
+  }
+
+  if (userThemes.length !== 0) {
+    browser.menus.create({
+      type: 'separator',
+      contexts: ["tools_menu"]
+    })
+  }
+
+  for (let theme of defaultThemes) {
+    browser.menus.create({
+      id: theme.id,
+      type: 'normal',
+      title: theme.name,
+      contexts: ["tools_menu"]
+    })
+  }
+})
+browser.menus.onClicked.addListener((info) => {
+  console.log(info)
+  currentId = info.menuItemId
+  browser.storage.local.set({currentId: currentId}).then(() => {
+    browser.management.setEnabled(currentId, true).then(() => {
+      buildThemes ()
+    })
+  })
+})
+
+>>>>>>> c901500b4200c8cb11f2225d5fccca1640b64b9c

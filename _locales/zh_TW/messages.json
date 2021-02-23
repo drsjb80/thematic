@@ -27,7 +27,7 @@
         "message": "Values between 1 and 999",
         "description": "Text displayed in the options pane"
     },
-    "options_autoevery_minutes": {
+    "minutes": {
         "message": "分鐘時輪換",
         "description": "Text displayed in the options pane"
     },
