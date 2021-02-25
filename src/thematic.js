@@ -5,20 +5,25 @@ console.args = function (a){ console.log(a.callee.name + ': ' + Array.from(a)) }
 
 console.log('themematic.js started')
 
-let themes
+let themes = {
+  currentId: undefined,
+  defaultThemes: undefined,
+  userThemes: undefined
+}
 let userThemes
 let defaultTheme
 let defaultThemes
 
-function setDefaultTheme(allThemes) {
-  defaultTheme = allThemes.filter(info => info.name === 'Default')
-  if (defaultTheme !== []) {
-    defaultTheme = defaultTheme[0]
+function getDefaultTheme(allThemes) {
+  console.args(arguments)
+
+  themes = allThemes.filter(info => info.name === 'Default')
+  if (themes !== []) {
+    return themes[0]
   } else {
     for (const theme in allThemes) {
       if (isDefaultTheme(theme)) {
-        defaultTheme = theme
-        break
+        return theme
       }
     }
     console.log('No default theme found!')
@@ -29,40 +34,43 @@ function buildThemes () {
   console.args(arguments)
 
   browser.management.getAll().then((allExtensions) => {
+    console.log(allExtensions)
     const allThemes = allExtensions.filter(info => info.type === 'theme')
     console.log(allThemes)
 
-    if (allThemes === []) {
-      console.log('No themes found!')
-      themes = {
-        currentId: undefined,
-        defaultThemes: undefined,
-        userThemes: undefined
-      }
-      return
-    }
-
-    setDefaultTheme(allThemes)
+    defaultTheme = getDefaultTheme(allThemes)
     defaultThemes = allThemes.filter(theme => isDefaultTheme(theme))
     userThemes = allThemes.filter(theme => !isDefaultTheme(theme))
 
     browser.storage.local.get('currentId').then((c) => {
       console.log(c)
       let currentId
-      if (Object.keys(c).length === 0) {
-        currentId = defaultTheme.id
-      } else {
-        currentId = c.currentId
-      }
-      console.log('currentId: ' + currentId)
 
-      themes = {
-        currentId: currentId,
-        defaultThemes: defaultThemes,
-        userThemes: userThemes
+      if (Object.keys(c).length !== 0) {
+        currentId = c.currentId
+      } else {
+        if (userThemes.length > 0) {
+          console.log('Setting currentId to first user theme')
+          currentId = userTheme[0].id
+        } else {
+          console.log('Setting currentId to default theme')
+          currentId = defaultTheme.id
+        }
       }
-    }).catch(console.log)
-  }).catch(console.log)
+
+      browser.storage.local.set({ currentId: currentId }).then(() => {
+        console.log(`Setting currentId to ${currentId}`)
+        themes = {
+          currentId: currentId,
+          defaultThemes: defaultThemes,
+          userThemes: userThemes
+        }
+        console.log(themes)
+      }).catch((err) => {
+        console.log(err)
+      })
+    })
+  })
 }
 
 buildThemes()
@@ -71,6 +79,7 @@ function extensionInstalled (info) {
   console.args(arguments)
   if (info.type === 'theme') {
     buildThemes()
+    buildToolsMenu()
   }
 }
 browser.management.onInstalled.addListener(extensionInstalled)
@@ -167,10 +176,13 @@ function handleMessage (request, sender, sendResponse) {
       sendResponse({ response: 'OK' })
       break
     case 'Get all themes':
+      // so currentId might not be valid.
+      // maybe just save all three separately.
       sendResponse(themes)
       break
     case 'Rebuild themes':
       buildThemes()
+      sendResponse({ response: 'OK' })
       break
     default:
       console.log('Unknown message received')
@@ -207,36 +219,39 @@ function commands (command) {
       break
   }
 }
-<<<<<<< HEAD
-=======
 browser.commands.onCommand.addListener(commands)
 
-browser.menus.removeAll().then(() => {
-  for (let theme of userThemes) {
-    browser.menus.create({
-      id: theme.id,
-      type: 'normal',
-      title: theme.name,
-      contexts: ["tools_menu"]
-    })
-  }
+function buildToolsMenu() {
+  browser.menus.removeAll().then(() => {
+    for (let theme of userThemes) {
+      browser.menus.create({
+        id: theme.id,
+        type: 'normal',
+        title: theme.name,
+        contexts: ["tools_menu"]
+      })
+    }
 
-  if (userThemes.length !== 0) {
-    browser.menus.create({
-      type: 'separator',
-      contexts: ["tools_menu"]
-    })
-  }
+    if (userThemes.length !== 0) {
+      browser.menus.create({
+        type: 'separator',
+        contexts: ["tools_menu"]
+      })
+    }
 
-  for (let theme of defaultThemes) {
-    browser.menus.create({
-      id: theme.id,
-      type: 'normal',
-      title: theme.name,
-      contexts: ["tools_menu"]
-    })
-  }
-})
+    for (let theme of defaultThemes) {
+      browser.menus.create({
+        id: theme.id,
+        type: 'normal',
+        title: theme.name,
+        contexts: ["tools_menu"]
+      })
+    }
+  })
+}
+
+buildToolsMenu()
+
 browser.menus.onClicked.addListener((info) => {
   console.log(info)
   currentId = info.menuItemId
@@ -246,5 +261,3 @@ browser.menus.onClicked.addListener((info) => {
     })
   })
 })
-
->>>>>>> c901500b4200c8cb11f2225d5fccca1640b64b9c

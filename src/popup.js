@@ -55,9 +55,9 @@ document.addEventListener("click", (e) => {
   browser.storage.local.set({currentId: currentId}).then(() => {
     browser.management.setEnabled(currentId, true)
 
-    browser.runtime.sendMessage({message: 'Rebuild themes'}).then(() => {
+    //browser.runtime.sendMessage({message: 'Rebuild themes'}).then(() => {
       // get promise resolved before window closes to avoid a warning.
       window.close()
-    }).catch(console.log)
+    //}).catch(console.log)
   }).catch(console.log)
 })
