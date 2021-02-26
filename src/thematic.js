@@ -3,17 +3,6 @@
 
 console.args = function (a){ console.log(a.callee.name + ': ' + Array.from(a)) }
 
-console.log('themematic.js started')
-
-let themes = {
-  currentId: undefined,
-  defaultThemes: undefined,
-  userThemes: undefined
-}
-let userThemes
-let defaultTheme
-let defaultThemes
-
 function getDefaultTheme(allThemes) {
   console.args(arguments)
 
@@ -58,36 +47,23 @@ function buildThemes () {
         }
       }
 
-      browser.storage.local.set({ currentId: currentId }).then(() => {
-        console.log(`Setting currentId to ${currentId}`)
-        themes = {
-          currentId: currentId,
-          defaultThemes: defaultThemes,
-          userThemes: userThemes
-        }
-        console.log(themes)
-      }).catch((err) => {
-        console.log(err)
-      })
-    })
-  })
+      const themes = {
+        currentId: currentId,
+        defaultThemes: defaultThemes,
+        userThemes: userThemes
+      }
+      browser.storage.local.set(themes).then(() => {})
+        .catch((err) => { console.log(err) })
+    }).catch((err) => { console.log(err) })
+  }).catch((err) => { console.log(err) })
+  return Promise.resolve()
 }
 
-buildThemes()
-
-function extensionInstalled (info) {
-  console.args(arguments)
-  if (info.type === 'theme') {
-    buildThemes()
-    buildToolsMenu()
-  }
-}
-browser.management.onInstalled.addListener(extensionInstalled)
-browser.management.onUninstalled.addListener(extensionInstalled)
+buildThemes().catch((err) => console.log(err))
 
 function isDefaultTheme (theme) {
   console.args(arguments)
-  let a = [
+  return [
     'firefox-compact-dark@mozilla.org@personas.mozilla.org',
     'firefox-compact-light@mozilla.org@personas.mozilla.org',
     'firefox-compact-dark@mozilla.org',
@@ -98,21 +74,21 @@ function isDefaultTheme (theme) {
     'thunderbird-compact-light@mozilla.org',
     '{972ce4c6-7e08-4474-a285-3208198ce6fd}'
   ].includes(theme.id)
-  return a
 }
 
 function rotate () {
   console.args(arguments)
 
-  if (userThemes.length <= 1) {
-    return
-  }
+  browser.storage.local.get().then((items) => {
+    if (items.userThemes.length <= 1) {
+      return
+    }
 
-  browser.storage.local.get('currentId').then((c) => {
-    let currentId = c.currentId
+    let currentId = items.currentId
 
-    let currentIndex = userThemes.findIndex((t) => t.id === currentId)
+    let currentIndex = items.userThemes.findIndex((t) => t.id === currentId)
     if (currentIndex === -1) {
+      // this will get resolved below as 1 will be added to this :/
       console.log('User theme index not found')
     }
 
@@ -134,9 +110,9 @@ function rotate () {
 
       browser.storage.local.set({ currentId: currentId }).then(() => {
         browser.management.setEnabled(currentId, true)
-      })
-    }).catch(console.log)
-  }).catch(console.log)
+      }).catch((err) => console.log(err))
+    }).catch((err) => console.log(err))
+  }).catch((err) => console.log(err))
 }
 browser.alarms.onAlarm.addListener(rotate)
 
@@ -144,10 +120,10 @@ function startRotation () {
   console.args(arguments)
   browser.storage.sync.set({ auto: true }).then(() => {
     browser.alarms.clear('rotate')
-    browser.storage.sync.get('autoMinutes').then(a => {
-      browser.alarms.create('rotate', { periodInMinutes: a.autoMinutes })
-    })
-  })
+    browser.storage.sync.get('minutes').then(a => {
+      browser.alarms.create('rotate', { periodInMinutes: a.minutes })
+    }).catch((err) => console.log(err))
+  }).catch((err) => console.log(err))
 }
 
 function stopRotation () {
@@ -175,15 +151,6 @@ function handleMessage (request, sender, sendResponse) {
       stopRotation()
       sendResponse({ response: 'OK' })
       break
-    case 'Get all themes':
-      // so currentId might not be valid.
-      // maybe just save all three separately.
-      sendResponse(themes)
-      break
-    case 'Rebuild themes':
-      buildThemes()
-      sendResponse({ response: 'OK' })
-      break
     default:
       console.log('Unknown message received')
   }
@@ -196,6 +163,7 @@ function commands (command) {
     case 'Switch to default theme':
       browser.storage.local.set({ currentId: defaultTheme.id }).then(() => {
         browser.management.setEnabled(defaultTheme.id, true)
+        stopRotation()
       })
       break
     case 'Rotate to next theme':
@@ -214,43 +182,56 @@ function commands (command) {
       })
       break
     default:
-      // should never get here
       console.log(`${command} not recognized`)
       break
   }
 }
 browser.commands.onCommand.addListener(commands)
 
-function buildToolsMenu() {
-  browser.menus.removeAll().then(() => {
-    for (let theme of userThemes) {
-      browser.menus.create({
-        id: theme.id,
-        type: 'normal',
-        title: theme.name,
-        contexts: ["tools_menu"]
-      })
-    }
-
-    if (userThemes.length !== 0) {
-      browser.menus.create({
-        type: 'separator',
-        contexts: ["tools_menu"]
-      })
-    }
-
-    for (let theme of defaultThemes) {
-      browser.menus.create({
-        id: theme.id,
-        type: 'normal',
-        title: theme.name,
-        contexts: ["tools_menu"]
-      })
-    }
+function buildToolsMenuItem(theme) {
+  console.args(arguments)
+  browser.menus.create({
+    id: theme.id,
+    type: 'normal',
+    title: theme.name,
+    contexts: ["tools_menu"]
   })
 }
 
-buildToolsMenu()
+function buildToolsMenu() {
+  console.args(arguments)
+  browser.menus.removeAll().then(() => {
+    browser.storage.local.get().then((items) => {
+      for (let theme of items.userThemes) {
+        buildToolsMenuItem(theme)
+      }
+
+      if (items.userThemes.length !== 0) {
+        browser.menus.create({
+          type: 'separator',
+          contexts: ["tools_menu"]
+        })
+      }
+
+      for (let theme of items.defaultThemes) {
+        buildToolsMenuItem(theme)
+      }
+    }).catch((err) => console.log(err))
+  }).catch((err) => console.log(err))
+}
+
+buildToolsMenu().catch((err) => console.log(err))
+
+function extensionInstalled (info) {
+  console.args(arguments)
+  if (info.type === 'theme') {
+    buildThemes().then(() => {
+      buildToolsMenu()
+    }).catch((err) => console.log(err))
+  }
+}
+browser.management.onInstalled.addListener(extensionInstalled)
+browser.management.onUninstalled.addListener(extensionInstalled)
 
 browser.menus.onClicked.addListener((info) => {
   console.log(info)

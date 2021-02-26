@@ -18,46 +18,37 @@ function buildMenuItem(theme) {
   return newChoice
 }
 
-function buildMenu(message) {
-  console.args(arguments)
-
+browser.storage.local.get().then((items) => {
   // has to be let, can't be const
   let currentDiv = document.getElementById("popup-content")
   currentDiv.addEventListener('mouseleave', (e) => {
-    console.log(message)
-    browser.management.setEnabled(message.currentId, true)
+    browser.management.setEnabled(items.currentId, true)
   })
 
   while (currentDiv.firstChild) {
     currentDiv.removeChild(currentDiv.firstChild);
   }
 
-  for (let theme of message.userThemes) {
+  for (let theme of items.userThemes) {
     currentDiv.appendChild(buildMenuItem(theme))
   }
 
-  if (message.userThemes.length !== 0) {
+  if (items.userThemes.length !== 0) {
     currentDiv.appendChild(document.createElement('hr'))
   }
 
-  for (let theme of message.defaultThemes) {
+  for (let theme of items.defaultThemes) {
     currentDiv.appendChild(buildMenuItem(theme))
   }
-}
-
-browser.runtime.sendMessage({message: 'Get all themes'}).then((m) => {
-  buildMenu(m)
-}).catch(console.log)
+})
 
 document.addEventListener("click", (e) => {
   currentId = e.target.id
   console.log('Setting currentId to: ' + currentId)
   browser.storage.local.set({currentId: currentId}).then(() => {
     browser.management.setEnabled(currentId, true)
-
-    //browser.runtime.sendMessage({message: 'Rebuild themes'}).then(() => {
-      // get promise resolved before window closes to avoid a warning.
       window.close()
-    //}).catch(console.log)
-  }).catch(console.log)
-})
+  }).catch((err) => console.log(err))
+  // i get a Uncaught TypeError: document.addEventListener(...) is undefined
+  // that doesn't seem to hurt anything, so i commented the follow catch out.
+})// .catch((err) => console.log(err))
