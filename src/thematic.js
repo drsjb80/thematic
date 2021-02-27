@@ -59,7 +59,6 @@ function buildThemes () {
   return Promise.resolve()
 }
 
-buildThemes().catch((err) => console.log(err))
 
 function isDefaultTheme (theme) {
   console.args(arguments)
@@ -220,7 +219,9 @@ function buildToolsMenu() {
   }).catch((err) => console.log(err))
 }
 
-buildToolsMenu().catch((err) => console.log(err))
+buildThemes().then(() => {
+  buildToolsMenu()
+}).catch((err) => console.log(err))
 
 function extensionInstalled (info) {
   console.args(arguments)
@@ -237,8 +238,6 @@ browser.menus.onClicked.addListener((info) => {
   console.log(info)
   currentId = info.menuItemId
   browser.storage.local.set({currentId: currentId}).then(() => {
-    browser.management.setEnabled(currentId, true).then(() => {
-      buildThemes ()
-    })
-  })
+    browser.management.setEnabled(currentId, true)
+  }).catch((err) => console.log(err))
 })
