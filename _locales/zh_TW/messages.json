@@ -1,54 +1,26 @@
 {
-    "about": {
-        "message": "關於",
-        "description": "The word 'About'"
-    },
-    "createdBy": {
-        "message": "作者：",
-        "description": "The words 'Created By'"
-    },
     "extensionDescription": {
-        "message": "讓您以「定時更換、重啟更換、隨機更換、自行切換、瞬間預覽」的方式享受火狐面板，也能瞬間切回預設面板，並有方便的「快捷鍵、附加元件列圖示選單、主功能表選單、工具功能表選單」供快速操作，外加清楚易懂的中文化介面供您使用！！",
-        "description": "Description of the extension."
+        "message": "讓您以「定時更換、重啟更換、隨機更換、自行切換、瞬間預覽」的方式享受火狐面板，也能瞬間切回預設面板，並有方便的「快捷鍵、附加元件列圖示選單、主功能表選單、工具功能表選單」供快速操作，外加清楚易懂的中文化介面供您使用！！"
     },
     "extensionName": {
-        "message": "Thematic",
-        "description": "Name of the extension."
+        "message": "Thematic"
     },
     "extensionShortName": {
-        "message": "Thematic",
-        "description": "Short name of the extension."
+        "message": "Thematic"
     },
     "homepage": {
-        "message": "首頁",
-        "description": "The words 'Home Page'"
-    },
-    "options_autoevery_hint":{
-        "message": "Values between 1 and 999",
-        "description": "Text displayed in the options pane"
+        "message": "首頁"
     },
     "minutes": {
-        "message": "分鐘時輪換",
-        "description": "Text displayed in the options pane"
+        "message": "分鐘時輪換, 1 - 999"
     },
-    "options_autoevery_switch": {
-        "message": "每當經過",
-        "description": "Text displayed in the options pane"
+    "autoswitch": {
+        "message": "每當經過"
     },
-    "options_title": {
-        "message": "Thematic 選項",
-        "description": "Title of the options menu"
+    "random": {
+        "message": "不以固定的順序更換面板。"
     },
-    "options_random_desc": {
-        "message": "不以固定的順序更換面板。",
-        "description": "Text displayed in the options pane"
-    },
-    "version": {
-        "message": "版本：",
-        "description": "The word 'Version'"
-    },
-    "options_usefultips_tip2": {
-        "description": "Tip indicating keyboard mapping.",
+    "keyboard_shortcuts": {
         "message": "See https://support.mozilla.org/en-US/kb/manage-extension-shortcuts-firefox for instructions on how to set the keyboard shortcuts. Short story: click on the gear above and choose Manage Extension Shortcuts."
     }
 }
