@@ -106,6 +106,8 @@ function rotate () {
         currentIndex = (currentIndex + 1) % userThemes.length
       }
       currentId = userThemes[currentIndex].id
+      console.log(currentId)
+      console.log(userThemes[currentIndex])
 
       browser.storage.local.set({ currentId: currentId }).then(() => {
         browser.management.setEnabled(currentId, true)
