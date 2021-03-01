@@ -11,7 +11,7 @@
     "minutes": {
         "message": "Minuten, 1 - 999"
     },
-    "autoswitch": {
+    "auto": {
         "message": "Wechsel alle"
     },
     "random": {

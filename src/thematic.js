@@ -52,15 +52,15 @@ function buildThemes () {
         defaultThemes: defaultThemes,
         userThemes: userThemes
       }
-      browser.storage.local.set(themes).then(() => {})
-        .catch((err) => { console.log(err) })
+      browser.storage.local.set(themes).then(() => {
+        buildToolsMenu()
+      }).catch((err) => { console.log(err) })
     }).catch((err) => { console.log(err) })
   }).catch((err) => { console.log(err) })
-  return Promise.resolve()
 }
 
 
-function isDefaultTheme (theme) {
+function isDefaultTheme(theme) {
   console.args(arguments)
   return [
     'firefox-compact-dark@mozilla.org@personas.mozilla.org',
@@ -221,16 +221,12 @@ function buildToolsMenu() {
   }).catch((err) => console.log(err))
 }
 
-buildThemes().then(() => {
-  buildToolsMenu()
-}).catch((err) => console.log(err))
+buildThemes()
 
 function extensionInstalled (info) {
   console.args(arguments)
   if (info.type === 'theme') {
-    buildThemes().then(() => {
-      buildToolsMenu()
-    }).catch((err) => console.log(err))
+    buildThemes()
   }
 }
 browser.management.onInstalled.addListener(extensionInstalled)
@@ -243,3 +239,4 @@ browser.menus.onClicked.addListener((info) => {
     browser.management.setEnabled(currentId, true)
   }).catch((err) => console.log(err))
 })
+

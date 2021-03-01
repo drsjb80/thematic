@@ -8,13 +8,10 @@
     "extensionShortName": {
         "message": "Thematic"
     },
-    "homepage": {
-        "message": "首頁"
-    },
     "minutes": {
         "message": "分鐘時輪換, 1 - 999"
     },
-    "autoswitch": {
+    "auto": {
         "message": "每當經過"
     },
     "random": {
