@@ -1,54 +1,23 @@
 ﻿{
     "extensionName": {
-        "message": "选项",
-        "description": "Name of the extension."
+        "message": "选项"
     },
     "extensionShortName": {
-        "message": "选项",
-        "description": "Short name of the extension."
+        "message": "选项"
     },
     "extensionDescription": {
-        "message":"本软件为您提供通过菜单或是敲键形式，快速切换浏览器的个人设定和原始设定背景图案的功能。 还可以定时自动播放所有背景图案， 本软件可在Firefox浏览器上安装使用。",
-        "description": "Description of the extension."
+        "message":"本软件为您提供通过菜单或是敲键形式，快速切换浏览器的个人设定和原始设定背景图案的功能。 还可以定时自动播放所有背景图案， 本软件可在Firefox浏览器上安装使用。"
     },
-    "about": {
-        "message": "关于",
-        "description": "The word 'About'"
-    },
-    "version": {
-        "message": "版本：",
-        "description": "The word 'Version'"
-    },
-    "createdBy": {
-        "message": "作者：",
-        "description": "The words 'Created By'"
-    },
-    "homepage": {
-        "message": " 首页",
-        "description": "The words 'Home Page'"
-    },
-    "options_title": {
-        "message": "选项",
-        "description": "Title of the options menu"
-    },
-    "options_autoevery_switch": {
-        "message": "每当经过",
-        "description": "Text displayed in the options pane"
+    "auto": {
+        "message": "每当经过"
     },
     "minutes": {
-        "message": "分钟时轮换",
-        "description": "Text displayed in the options pane"
+        "message": "分钟时轮换, 1 - 999"
     },
-    "options_autoevery_hint":{
-        "message": "Values between 1 and 999",
-        "description": "Text displayed in the options pane"
+    "random": {
+        "message": "不以固定的顺序更换面板。"
     },
-    "options_random_desc": {
-        "message": "不以固定的顺序更换面板。",
-        "description": "Text displayed in the options pane"
-    },
-    "options_usefultips_tip2": {
-        "description": "Tip indicating keyboard mapping.",
+    "keyboard_shortcuts": {
         "message": "See https://support.mozilla.org/en-US/kb/manage-extension-shortcuts-firefox for instructions on how to set the keyboard shortcuts. Short story: click on the gear above and choose Manage Extension Shortcuts."
     }
 }

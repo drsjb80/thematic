@@ -1,54 +1,23 @@
 {
-    "about": {
-        "description": "The word 'About'",
-        "message": "\u00dcber:"
-    },
-    "createdBy": {
-        "description": "The words 'Created By'",
-        "message": "Entwickelt von:"
-    },
     "extensionDescription": {
-        "description": "Description of the extension.",
         "message": "Schneller Wechsel zwischen ihren Themes oder zur\u00fcck zu den Standardeinstellungen \u00fcber das Men\u00fc oder der Tastatur. Sie k\u00f6nnen auch automatisch durch alle Themen in einem Intervall ihrer Wahl wechseln. Arbeitet mit Firefox."
     },
     "extensionName": {
-        "description": "Name of the extension.",
         "message": "Thematic"
     },
     "extensionShortName": {
-        "description": "Short name of the extension.",
         "message": "Thematic"
     },
-    "homepage": {
-        "description": "The words 'Home Page'",
-        "message": "Homepage:"
-    },
-    "options_autoevery_hint": {
-        "description": "Text displayed in the options pane",
-        "message": "Values between 1 and 999"
-    },
     "minutes": {
-        "description": "Text displayed in the options pane",
-        "message": "Minuten."
+        "message": "Minuten, 1 - 999"
     },
-    "options_autoevery_switch": {
-        "description": "Text displayed in the options pane",
+    "auto": {
         "message": "Wechsel alle"
     },
-    "options_random_desc": {
-        "description": "Text displayed in the options pane",
+    "random": {
         "message": "Wechsel zu einer zuf\u00e4lligen Theme anstelle des Letzten verwendeten."
     },
-    "options_title": {
-        "description": "Title of the options menu",
-        "message": "Thematic Einstellungen"
-    },
-    "options_usefultips_tip2": {
-        "description": "Tip indicating keyboard mapping.",
+    "keyboard_shortcuts": {
         "message": "See https://support.mozilla.org/en-US/kb/manage-extension-shortcuts-firefox for instructions on how to set the keyboard shortcuts. Short story: click on the gear above and choose Manage Extension Shortcuts."
-    },
-    "version": {
-        "description": "The word 'Version'",
-        "message": "Version:"
     }
 }
