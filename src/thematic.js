@@ -53,7 +53,7 @@ function buildThemes () {
         userThemes: userThemes
       }
       browser.storage.local.set(themes).then(() => {
-        buildToolsMenu()
+        buildToolsMenu(themes)
       }).catch((err) => { console.log(err) })
     }).catch((err) => { console.log(err) })
   }).catch((err) => { console.log(err) })
@@ -199,25 +199,23 @@ function buildToolsMenuItem(theme) {
   })
 }
 
-function buildToolsMenu() {
+function buildToolsMenu(themes) {
   console.args(arguments)
   browser.menus.removeAll().then(() => {
-    browser.storage.local.get().then((items) => {
-      for (let theme of items.userThemes) {
-        buildToolsMenuItem(theme)
-      }
+    for (let theme of themes.userThemes) {
+      buildToolsMenuItem(theme)
+    }
 
-      if (items.userThemes.length !== 0) {
-        browser.menus.create({
-          type: 'separator',
-          contexts: ["tools_menu"]
-        })
-      }
+    if (themes.userThemes.length !== 0) {
+      browser.menus.create({
+        type: 'separator',
+        contexts: ["tools_menu"]
+      })
+    }
 
-      for (let theme of items.defaultThemes) {
-        buildToolsMenuItem(theme)
-      }
-    }).catch((err) => console.log(err))
+    for (let theme of themes.defaultThemes) {
+      buildToolsMenuItem(theme)
+    }
   }).catch((err) => console.log(err))
 }
 
