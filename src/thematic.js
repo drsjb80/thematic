@@ -49,6 +49,7 @@ function buildThemes () {
 
       const themes = {
         currentId: currentId,
+        defaultTheme: defaultTheme,
         defaultThemes: defaultThemes,
         userThemes: userThemes
       }
@@ -162,9 +163,12 @@ function commands (command) {
   // console.args(arguments)
   switch (command) {
     case 'Switch to default theme':
-      browser.storage.local.set({ currentId: defaultTheme.id }).then(() => {
-        browser.management.setEnabled(defaultTheme.id, true)
-        stopRotation()
+      browser.storage.local.get('defaultTheme').then((c) => {
+        let defaultTheme = c.defaultTheme
+        browser.storage.local.set({ currentId: defaultTheme.id }).then(() => {
+          browser.management.setEnabled(defaultTheme.id, true)
+          stopRotation()
+        })
       })
       break
     case 'Rotate to next theme':
