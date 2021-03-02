@@ -6,9 +6,7 @@
         }
     },
     "background": {
-        "scripts": [
-            "src/thematic.js"
-        ]
+      "page": "src/background-page.html"
     },
     "browser_action": {
         "default_icon": {
@@ -60,5 +58,5 @@
         "management"
     ],
     "short_name": "__MSG_extensionShortName__",
-    "version": "7.0.0"
+    "version": "7.0.1"
 }

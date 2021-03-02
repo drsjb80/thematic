@@ -1,4 +1,10 @@
+# https://extensionworkshop.com/documentation/develop/getting-started-with-web-ext/
+npm install --global web-ext
 npx web-ext run
+web-ext lint
+web-ext build --overwrite-dest
+
 npx web-ext sign --api-key=$AMO_JWT_ISSUER --api-secret=$AMO_JWT_SECRET
 ----
 npm install --save-dev sinon webextensions-api-mock
+

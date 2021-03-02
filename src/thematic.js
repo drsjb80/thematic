@@ -4,9 +4,9 @@
 console.args = function (a){ console.log(a.callee.name + ': ' + Array.from(a)) }
 
 function getDefaultTheme(allThemes) {
-  console.args(arguments)
+  // console.args(arguments)
 
-  themes = allThemes.filter(info => info.name === 'Default')
+  let themes = allThemes.filter(info => info.name === 'Default')
   if (themes !== []) {
     return themes[0]
   } else {
@@ -20,16 +20,16 @@ function getDefaultTheme(allThemes) {
 }
 
 function buildThemes () {
-  console.args(arguments)
+  // console.args(arguments)
 
   browser.management.getAll().then((allExtensions) => {
     console.log(allExtensions)
     const allThemes = allExtensions.filter(info => info.type === 'theme')
     console.log(allThemes)
 
-    defaultTheme = getDefaultTheme(allThemes)
-    defaultThemes = allThemes.filter(theme => isDefaultTheme(theme))
-    userThemes = allThemes.filter(theme => !isDefaultTheme(theme))
+    let defaultTheme = getDefaultTheme(allThemes)
+    let defaultThemes = allThemes.filter(theme => isDefaultTheme(theme))
+    let userThemes = allThemes.filter(theme => !isDefaultTheme(theme))
 
     browser.storage.local.get('currentId').then((c) => {
       console.log(c)
@@ -40,7 +40,7 @@ function buildThemes () {
       } else {
         if (userThemes.length > 0) {
           console.log('Setting currentId to first user theme')
-          currentId = userTheme[0].id
+          currentId = userThemes[0].id
         } else {
           console.log('Setting currentId to default theme')
           currentId = defaultTheme.id
@@ -60,8 +60,8 @@ function buildThemes () {
 }
 
 
-function isDefaultTheme(theme) {
-  console.args(arguments)
+export function isDefaultTheme(theme) {
+  // console.args(arguments)
   return [
     'firefox-compact-dark@mozilla.org@personas.mozilla.org',
     'firefox-compact-light@mozilla.org@personas.mozilla.org',
@@ -76,7 +76,7 @@ function isDefaultTheme(theme) {
 }
 
 function rotate () {
-  console.args(arguments)
+  // console.args(arguments)
 
   browser.storage.local.get().then((items) => {
     if (items.userThemes.length <= 1) {
@@ -96,18 +96,18 @@ function rotate () {
         let newIndex = currentIndex
         console.log(currentIndex)
         while (newIndex === currentIndex) {
-          const a = Math.floor(Math.random() * userThemes.length)
+          const a = Math.floor(Math.random() * items.userThemes.length)
           console.log(a)
           newIndex = a
         }
         currentIndex = newIndex
         console.log(currentIndex)
       } else {
-        currentIndex = (currentIndex + 1) % userThemes.length
+        currentIndex = (currentIndex + 1) % items.userThemes.length
       }
-      currentId = userThemes[currentIndex].id
+      currentId = items.userThemes[currentIndex].id
       console.log(currentId)
-      console.log(userThemes[currentIndex])
+      console.log(items.userThemes[currentIndex])
 
       browser.storage.local.set({ currentId: currentId }).then(() => {
         browser.management.setEnabled(currentId, true)
@@ -118,7 +118,7 @@ function rotate () {
 browser.alarms.onAlarm.addListener(rotate)
 
 function startRotation () {
-  console.args(arguments)
+  // console.args(arguments)
   browser.storage.sync.set({ auto: true }).then(() => {
     browser.alarms.clear('rotate')
     browser.storage.sync.get('minutes').then(a => {
@@ -128,7 +128,7 @@ function startRotation () {
 }
 
 function stopRotation () {
-  console.args(arguments)
+  // console.args(arguments)
   browser.storage.sync.set({ auto: false }).then(() => {
     browser.alarms.clear('rotate')
   })
@@ -159,7 +159,7 @@ function handleMessage (request, sender, sendResponse) {
 browser.runtime.onMessage.addListener(handleMessage)
 
 function commands (command) {
-  console.args(arguments)
+  // console.args(arguments)
   switch (command) {
     case 'Switch to default theme':
       browser.storage.local.set({ currentId: defaultTheme.id }).then(() => {
@@ -190,7 +190,7 @@ function commands (command) {
 browser.commands.onCommand.addListener(commands)
 
 function buildToolsMenuItem(theme) {
-  console.args(arguments)
+  // console.args(arguments)
   browser.menus.create({
     id: theme.id,
     type: 'normal',
@@ -200,7 +200,7 @@ function buildToolsMenuItem(theme) {
 }
 
 function buildToolsMenu(themes) {
-  console.args(arguments)
+  // console.args(arguments)
   browser.menus.removeAll().then(() => {
     for (let theme of themes.userThemes) {
       buildToolsMenuItem(theme)
@@ -222,7 +222,7 @@ function buildToolsMenu(themes) {
 buildThemes()
 
 function extensionInstalled (info) {
-  console.args(arguments)
+  // console.args(arguments)
   if (info.type === 'theme') {
     buildThemes()
   }
@@ -232,7 +232,7 @@ browser.management.onUninstalled.addListener(extensionInstalled)
 
 browser.menus.onClicked.addListener((info) => {
   console.log(info)
-  currentId = info.menuItemId
+  let currentId = info.menuItemId
   browser.storage.local.set({currentId: currentId}).then(() => {
     browser.management.setEnabled(currentId, true)
   }).catch((err) => console.log(err))
