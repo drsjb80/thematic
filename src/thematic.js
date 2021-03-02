@@ -1,10 +1,9 @@
 /* global browser */
 // vim: ts=2 sw=2 expandtab
 
-console.args = function (a){ console.log(a.callee.name + ': ' + Array.from(a)) }
+
 
 function getDefaultTheme(allThemes) {
-  // console.args(arguments)
 
   let themes = allThemes.filter(info => info.name === 'Default')
   if (themes !== []) {
@@ -20,7 +19,6 @@ function getDefaultTheme(allThemes) {
 }
 
 function buildThemes () {
-  // console.args(arguments)
 
   browser.management.getAll().then((allExtensions) => {
     console.log(allExtensions)
@@ -62,7 +60,6 @@ function buildThemes () {
 
 
 export function isDefaultTheme(theme) {
-  // console.args(arguments)
   return [
     'firefox-compact-dark@mozilla.org@personas.mozilla.org',
     'firefox-compact-light@mozilla.org@personas.mozilla.org',
@@ -77,7 +74,6 @@ export function isDefaultTheme(theme) {
 }
 
 function rotate () {
-  // console.args(arguments)
 
   browser.storage.local.get().then((items) => {
     if (items.userThemes.length <= 1) {
@@ -119,20 +115,26 @@ function rotate () {
 browser.alarms.onAlarm.addListener(rotate)
 
 function startRotation () {
-  // console.args(arguments)
-  browser.storage.sync.set({ auto: true }).then(() => {
-    browser.alarms.clear('rotate')
-    browser.storage.sync.get('minutes').then(a => {
-      browser.alarms.create('rotate', { periodInMinutes: a.minutes })
-    }).catch((err) => console.log(err))
+  browser.runtime.getBrowserInfo().then((info) => {
+    if (info.name !== 'Thunderbird') {
+      browser.storage.sync.set({ auto: true }).then(() => {
+        browser.alarms.clear('rotate')
+        browser.storage.sync.get('minutes').then(a => {
+          browser.alarms.create('rotate', { periodInMinutes: a.minutes })
+        }).catch((err) => console.log(err))
+      }).catch((err) => console.log(err))
+    }
   }).catch((err) => console.log(err))
 }
 
 function stopRotation () {
-  // console.args(arguments)
-  browser.storage.sync.set({ auto: false }).then(() => {
-    browser.alarms.clear('rotate')
-  })
+  browser.runtime.getBrowserInfo().then((info) => {
+    if (info.name !== 'Thunderbird') {
+      browser.storage.sync.set({ auto: false }).then(() => {
+        browser.alarms.clear('rotate')
+      }).catch((err) => console.log(err))
+    }
+  }).catch((err) => console.log(err))
 }
 
 browser.storage.sync.get('auto').then((pref) => {
@@ -160,7 +162,6 @@ function handleMessage (request, sender, sendResponse) {
 browser.runtime.onMessage.addListener(handleMessage)
 
 function commands (command) {
-  // console.args(arguments)
   switch (command) {
     case 'Switch to default theme':
       browser.storage.local.get('defaultTheme').then((c) => {
@@ -194,7 +195,6 @@ function commands (command) {
 browser.commands.onCommand.addListener(commands)
 
 function buildToolsMenuItem(theme) {
-  // console.args(arguments)
   browser.menus.create({
     id: theme.id,
     type: 'normal',
@@ -204,21 +204,24 @@ function buildToolsMenuItem(theme) {
 }
 
 function buildToolsMenu(themes) {
-  // console.args(arguments)
-  browser.menus.removeAll().then(() => {
-    for (let theme of themes.userThemes) {
-      buildToolsMenuItem(theme)
-    }
+  browser.runtime.getBrowserInfo().then((info) => {
+    if (info.name !== 'Thunderbird') {
+      browser.menus.removeAll().then(() => {
+        for (let theme of themes.userThemes) {
+          buildToolsMenuItem(theme)
+        }
 
-    if (themes.userThemes.length !== 0) {
-      browser.menus.create({
-        type: 'separator',
-        contexts: ["tools_menu"]
-      })
-    }
+        if (themes.userThemes.length !== 0) {
+          browser.menus.create({
+            type: 'separator',
+            contexts: ["tools_menu"]
+          })
+        }
 
-    for (let theme of themes.defaultThemes) {
-      buildToolsMenuItem(theme)
+        for (let theme of themes.defaultThemes) {
+          buildToolsMenuItem(theme)
+        }
+      }).catch((err) => console.log(err))
     }
   }).catch((err) => console.log(err))
 }
@@ -226,7 +229,6 @@ function buildToolsMenu(themes) {
 buildThemes()
 
 function extensionInstalled (info) {
-  // console.args(arguments)
   if (info.type === 'theme') {
     buildThemes()
   }

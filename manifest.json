@@ -2,7 +2,7 @@
     "browser_specific_settings": {
         "gecko": {
             "id": "drsjb80@gmail.com",
-            "strict_min_version": "57.0"
+            "strict_min_version": "60.0"
         }
     },
     "background": {
@@ -58,5 +58,5 @@
         "management"
     ],
     "short_name": "__MSG_extensionShortName__",
-    "version": "7.0.2"
+    "version": "7.0.3"
 }

@@ -1,16 +1,12 @@
-/* global browser */
 // vim: ts=2 sw=2 expandtab
 
-console.args = function (a) { console.log(a.callee.name + ': ' + Array.from(a)) }
-
-const preferences = ['auto', 'minutes', 'random']
+"use strict"
 
 const auto = document.querySelector('#auto')
 const minutes = document.querySelector('#minutes')
 const random = document.querySelector('#random')
 
 function saveOptions (e) {
-  console.args(arguments)
   e.preventDefault()
   browser.storage.sync.set({
     auto: auto.checked,
@@ -24,8 +20,7 @@ function saveOptions (e) {
 }
 
 function loadOptions () {
-  console.args(arguments)
-  browser.storage.sync.get(preferences).then((prefs) => {
+  browser.storage.sync.get().then((prefs) => {
     auto.checked = prefs.auto
     minutes.value = prefs.minutes === undefined ? 30 : prefs.minutes
     random.checked = prefs.random
@@ -34,7 +29,6 @@ function loadOptions () {
 
 // https://developer.mozilla.org/en-US/docs/Displaying_web_content_in_an_extension_without_security_issues
 function localizeHtmlPage () {
-  console.args(arguments)
   for (let obj of document.getElementsByName('i18n')) {
     obj.textContent = browser.i18n.getMessage(obj.id.toString())
   }
