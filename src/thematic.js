@@ -1,49 +1,45 @@
 /* global browser */
 // vim: ts=2 sw=2 expandtab
 
-
+'use strict'
 
 function getDefaultTheme(allThemes) {
-
   let themes = allThemes.filter(info => info.name === 'Default')
-  if (themes !== []) {
+  if (themes.length > 0) {
     return themes[0]
-  } else {
-    for (const theme in allThemes) {
-      if (isDefaultTheme(theme)) {
-        return theme
-      }
-    }
-    console.log('No default theme found!')
   }
+
+  for (let theme of allThemes) {
+    if (isDefaultTheme(theme)) {
+      return theme
+    }
+  }
+  console.log('No default theme found!')
+}
+
+function getCurrentId(c, userThemes, defaultTheme) {
+  if (Object.keys(c).length !== 0) {
+    return c.currentId
+  }
+
+  if (userThemes.length > 0) {
+    console.log('Setting currentId to first user theme')
+    return userThemes[0].id
+  }
+
+  console.log('Setting currentId to default theme')
+  return defaultTheme.id
 }
 
 function buildThemes () {
-
   browser.management.getAll().then((allExtensions) => {
-    console.log(allExtensions)
     const allThemes = allExtensions.filter(info => info.type === 'theme')
-    console.log(allThemes)
-
-    let defaultTheme = getDefaultTheme(allThemes)
-    let defaultThemes = allThemes.filter(theme => isDefaultTheme(theme))
-    let userThemes = allThemes.filter(theme => !isDefaultTheme(theme))
 
     browser.storage.local.get('currentId').then((c) => {
-      console.log(c)
-      let currentId
-
-      if (Object.keys(c).length !== 0) {
-        currentId = c.currentId
-      } else {
-        if (userThemes.length > 0) {
-          console.log('Setting currentId to first user theme')
-          currentId = userThemes[0].id
-        } else {
-          console.log('Setting currentId to default theme')
-          currentId = defaultTheme.id
-        }
-      }
+      let defaultTheme = getDefaultTheme(allThemes)
+      let defaultThemes = allThemes.filter(theme => isDefaultTheme(theme))
+      let userThemes = allThemes.filter(theme => !isDefaultTheme(theme))
+      let currentId = getCurrentId(c, userThemes, defaultTheme)
 
       const themes = {
         currentId: currentId,
@@ -58,8 +54,7 @@ function buildThemes () {
   }).catch((err) => { console.log(err) })
 }
 
-
-export function isDefaultTheme(theme) {
+function isDefaultTheme (theme) {
   return [
     'firefox-compact-dark@mozilla.org@personas.mozilla.org',
     'firefox-compact-light@mozilla.org@personas.mozilla.org',
@@ -73,38 +68,44 @@ export function isDefaultTheme(theme) {
   ].includes(theme.id)
 }
 
-function rotate () {
+if (typeof process !== 'undefined') {
+  exports.isDefaultTheme = isDefaultTheme
+  exports.chooseNext = chooseNext
+  exports.getCurrentId = getCurrentId
+  exports.getDefaultTheme = getDefaultTheme
+  exports.buildToolsMenuItem = buildToolsMenuItem
+}
 
+function chooseNext(currentIndex, pref, items) {
+  if (pref.random) {
+    let newIndex = currentIndex
+    while (newIndex === currentIndex) {
+      const a = Math.floor(Math.random() * items.userThemes.length)
+      newIndex = a
+    }
+    return newIndex
+  }
+  return (currentIndex + 1) % items.userThemes.length
+}
+
+function rotate () {
   browser.storage.local.get().then((items) => {
     if (items.userThemes.length <= 1) {
       return
     }
 
     let currentId = items.currentId
-
     let currentIndex = items.userThemes.findIndex((t) => t.id === currentId)
+
     if (currentIndex === -1) {
       // this will get resolved below as 1 will be added to this :/
       console.log('User theme index not found')
     }
 
     browser.storage.sync.get('random').then((pref) => {
-      if (pref.random) {
-        let newIndex = currentIndex
-        console.log(currentIndex)
-        while (newIndex === currentIndex) {
-          const a = Math.floor(Math.random() * items.userThemes.length)
-          console.log(a)
-          newIndex = a
-        }
-        currentIndex = newIndex
-        console.log(currentIndex)
-      } else {
-        currentIndex = (currentIndex + 1) % items.userThemes.length
-      }
+      currentIndex = chooseNext(currentIndex, pref, items)
       currentId = items.userThemes[currentIndex].id
       console.log(currentId)
-      console.log(items.userThemes[currentIndex])
 
       browser.storage.local.set({ currentId: currentId }).then(() => {
         browser.management.setEnabled(currentId, true)
@@ -243,4 +244,3 @@ browser.menus.onClicked.addListener((info) => {
     browser.management.setEnabled(currentId, true)
   }).catch((err) => console.log(err))
 })
-

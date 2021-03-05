@@ -2,5 +2,4 @@ modules
 node_modules/
 package-lock.json
 package.json
-src/thematic.test.js
 web-ext-artifacts/

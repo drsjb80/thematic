@@ -1,5 +1,7 @@
 // vim: ts=2 sw=2 expandtab
 
+let menus = []
+
 browser = {
   alarms: {
     clear: function(f) {},
@@ -28,8 +30,8 @@ browser = {
     onUninstalled: { addListener: function(f) {} },
   },
   menus: {
-    create: function(f) {},
-    removeAll: function(f) { return Promise.resolve() },
+    create: function(item) { menus.push(item) },
+    removeAll: function(f) { menus = []; return Promise.resolve() },
     onClicked: { addListener: function(f) {} },
   },
 }
@@ -50,9 +52,55 @@ browser.storage.sync.get('auto').then((pref) => {})
 browser.storage.sync.set({ auto: false }).then(() => {})
 */
 
+aBunchOfThemes = [
+  {name: 'Theme one', id: 'one'},
+  {name: 'Theme two', id: 'two'},
+  {name: 'Theme three', id: 'three'},
+  {name: 'Theme four', id: 'four'},
+]
+
 const thematic = require('./thematic.js')
 // console.log(thematic)
 
-test('foo is not a default theme', () => {
-  expect(thematic.isDefaultTheme('foo')).toBe(false);
+test('isDefaultTheme', () => {
+  expect(thematic.isDefaultTheme({id: 'foo'})).toBe(false)
+  expect(thematic.isDefaultTheme({id: 'default-theme@mozilla.org'})).toBe(true)
 });
+
+test('chooseLength with a length of two is always the other one', () => {
+  items = {userThemes: [1,2]}
+  expect(thematic.chooseNext(0, {random: false}, items)).toBe(1)
+  expect(thematic.chooseNext(1, {random: false}, items)).toBe(0)
+  expect(thematic.chooseNext(0, {random: true}, items)).toBe(1)
+  expect(thematic.chooseNext(1, {random: true}, items)).toBe(0)
+});
+
+test('chooseLength with a length of three rotates', () => {
+  items = {userThemes: [1,2,3]}
+  expect(thematic.chooseNext(0, {random: false}, items)).toBe(1)
+  expect(thematic.chooseNext(1, {random: false}, items)).toBe(2)
+  expect(thematic.chooseNext(2, {random: false}, items)).toBe(0)
+});
+
+test('getCurrentId', () => {
+  expect(thematic.getCurrentId({currentId: 'foo'}, [], {})).toBe('foo')
+  expect(thematic.getCurrentId({}, [{id: 'foo'}], {})).toBe('foo')
+  expect(thematic.getCurrentId({}, [], {id: 'foo'})).toBe('foo')
+})
+
+test('getDefaultTheme', () => {
+  theme = {name: 'Default', id: 'foo'}
+  expect(thematic.getDefaultTheme([theme])).toBe(theme)
+
+  theme = {name: 'foo', id: 'default-theme@mozilla.org'}
+  expect(thematic.getDefaultTheme([theme])).toBe(theme)
+
+  theme = {name: 'foo', id: 'foo'}
+  expect(thematic.getDefaultTheme([theme])).toBeUndefined()
+})
+
+test('buildToolsMenuItem', () => {
+  expected = [{ id: 'one', type: 'normal', title: 'Theme one', contexts: [ 'tools_menu' ]}]
+  thematic.buildToolsMenuItem(aBunchOfThemes[0])
+  expect(menus).toStrictEqual(expected)
+})
