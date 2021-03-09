@@ -9,17 +9,14 @@
 
 	<body>
         <form>
-            <div>
-                <input type="checkbox" id="auto" tabindex="1">
-                <label for="auto" name="i18n" id="auto"></label>
-                <input type="number" id="minutes" size="4" min="1" max="999" tabindex="2">
-                <label for="minutes" name="i18n" id="minutes"></label>
-            </div>
-            <div>
-                <input type="checkbox" id="random" tabindex="3">
-                <label for="random" name="i18n" id="random">
-                </label>
-            </div>
+            <input type="checkbox" id="auto" tabindex="1">
+            <label for="auto" class="i18n" id="autolabel"></label>
+            <input type="number" id="minutes" size="4" min="1" max="999" tabindex="2">
+            <label for="minutes" class="i18n" id="minuteslabel"></label>
+            <br/>
+            <input type="checkbox" id="random" tabindex="3">
+            <label for="random" class="i18n" id="randomlabel"></label>
+            <br/>
             <br/>
             <button type="submit">Save</button>
         </form>

@@ -8,13 +8,13 @@
     "extensionShortName": {
         "message": "Thematic"
     },
-    "minutes": {
+    "minuteslabel": {
         "message": "minutes, 1 - 999."
     },
-    "auto": {
+    "autolabel": {
         "message": "Switch every"
     },
-    "random": {
+    "randomlabel": {
         "message": "Switch to a random theme instead of the least recent."
     },
     "keyboard_shortcuts": {

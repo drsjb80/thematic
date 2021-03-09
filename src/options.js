@@ -1,12 +1,9 @@
 // vim: ts=2 sw=2 expandtab
 
-"use strict"
-
-const auto = document.querySelector('#auto')
-const minutes = document.querySelector('#minutes')
-const random = document.querySelector('#random')
+'use strict'
 
 function saveOptions (e) {
+  console.log('saveOptions')
   e.preventDefault()
   browser.storage.sync.set({
     auto: auto.checked,
@@ -20,16 +17,21 @@ function saveOptions (e) {
 }
 
 function loadOptions () {
+  console.log('loadOptions')
   browser.storage.sync.get().then((prefs) => {
-    auto.checked = prefs.auto
-    minutes.value = prefs.minutes === undefined ? 30 : prefs.minutes
-    random.checked = prefs.random
+    document.getElementById('auto').checked =
+      prefs.auto === undefined ? false : prefs.auto
+    document.getElementById('minutes').value =
+      prefs.minutes === undefined ? 30 : prefs.minutes
+    document.getElementById('random').checked =
+      prefs.random === undefined ? false : prefs.random
   }).catch(console.log)
 }
 
 // https://developer.mozilla.org/en-US/docs/Displaying_web_content_in_an_extension_without_security_issues
 function localizeHtmlPage () {
-  for (let obj of document.getElementsByName('i18n')) {
+  for (let obj of document.getElementsByClassName('i18n')) {
+    console.log('obj: ' + obj)
     obj.textContent = browser.i18n.getMessage(obj.id.toString())
   }
 }

@@ -163,6 +163,7 @@ function handleMessage (request, sender, sendResponse) {
 browser.runtime.onMessage.addListener(handleMessage)
 
 function commands (command) {
+  console.log(command)
   switch (command) {
     case 'Switch to default theme':
       browser.storage.local.get('defaultTheme').then((c) => {
@@ -180,12 +181,12 @@ function commands (command) {
       browser.storage.sync.get('auto').then((pref) => {
         if (pref.auto) {
           stopRotation()
+          browser.storage.sync.set({ auto: false }).catch(console.log)
         } else {
           startRotation()
           rotate()
+          browser.storage.sync.set({ auto: true }).catch(console.log)
         }
-        browser.storage.sync.set({ auto: !pref.auto })
-          .catch(console.log)
       })
       break
     default:

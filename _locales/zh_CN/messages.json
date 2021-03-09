@@ -8,13 +8,13 @@
     "extensionDescription": {
         "message":"本软件为您提供通过菜单或是敲键形式，快速切换浏览器的个人设定和原始设定背景图案的功能。 还可以定时自动播放所有背景图案， 本软件可在Firefox浏览器上安装使用。"
     },
-    "auto": {
+    "autolabel": {
         "message": "每当经过"
     },
-    "minutes": {
+    "minuteslabel": {
         "message": "分钟时轮换, 1 - 999"
     },
-    "random": {
+    "randomlabel": {
         "message": "不以固定的顺序更换面板。"
     },
     "keyboard_shortcuts": {
