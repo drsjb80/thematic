@@ -1,5 +1,7 @@
 # Thematic
 
+[![SonarCloud](https://sonarcloud.io/images/project_badges/sonarcloud-white.svg)](https://sonarcloud.io/dashboard?id=drsjb80_thematic)
+
 Easily switch between themes in Firefox and Thunderbird. This extension
 allows you to switch between themes via keyboard combinations or every N
 minutes. It also allows one to specify switching to a random next theme.
