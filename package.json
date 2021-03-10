@@ -1,0 +1,27 @@
+{
+  "name": "thematic",
+  "version": "1.0.0",
+  "description": "Easily switch between themes in Firefox and Thunderbird. This extension allows you to switch between themes via keyboard combinations or every N minutes. It also allows one to specify switching to a random next theme. Autoswitching and having Thematic on the tools menu is not supported in Thunderbird.",
+  "main": "jest.config.js",
+  "dependencies": {},
+  "devDependencies": {
+    "eslint": "^7.21.0",
+    "eslint-config-standard": "^16.0.2",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.3.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/drsjb80/thematic.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/drsjb80/thematic/issues"
+  },
+  "homepage": "https://github.com/drsjb80/thematic#readme"
+}
