@@ -1,39 +1,41 @@
 // vim: ts=2 sw=2 expandtab
+/* global test, expect */
 
 let menus = []
 
+// can't be let, const, or var
 browser = {
   alarms: {
-    clear: function(f) {},
-    onAlarm: { addListener: function(f) {}, },
+    clear: function (f) { return undefined },
+    onAlarm: { addListener: function (f) { return undefined } }
   },
   storage: {
     sync: {
-      get: function(f) { return Promise.resolve(true) },
-      set: function(f) { return Promise.resolve() },
-    },
+      get: function (f) { return Promise.resolve(true) },
+      set: function (f) { return Promise.resolve() }
+    }
   },
   runtime: {
     onMessage: {
-      addListener: function(f) {},
-    },
+      addListener: function (f) { return undefined }
+    }
   },
   commands: {
     onCommand: {
-      addListener: function(f) {},
-    },
+      addListener: function (f) { return undefined }
+    }
   },
   management: {
-    getAll: function(f) { return Promise.resolve() },
-    setEnabled: function(f) {},
-    onInstalled: { addListener: function(f) {} },
-    onUninstalled: { addListener: function(f) {} },
+    getAll: function (f) { return Promise.resolve() },
+    setEnabled: function (f) { return undefined },
+    onInstalled: { addListener: function (f) { return undefined } },
+    onUninstalled: { addListener: function (f) { return undefined } }
   },
   menus: {
-    create: function(item) { menus.push(item) },
-    removeAll: function(f) { menus = []; return Promise.resolve() },
-    onClicked: { addListener: function(f) {} },
-  },
+    create: function (item) { menus.push(item) },
+    removeAll: function (f) { menus = []; return Promise.resolve() },
+    onClicked: { addListener: function (f) { return undefined } }
+  }
 }
 
 /*
@@ -52,55 +54,55 @@ browser.storage.sync.get('auto').then((pref) => {})
 browser.storage.sync.set({ auto: false }).then(() => {})
 */
 
-aBunchOfThemes = [
-  {name: 'Theme one', id: 'one'},
-  {name: 'Theme two', id: 'two'},
-  {name: 'Theme three', id: 'three'},
-  {name: 'Theme four', id: 'four'},
+const aBunchOfThemes = [
+  { name: 'Theme one', id: 'one' },
+  { name: 'Theme two', id: 'two' },
+  { name: 'Theme three', id: 'three' },
+  { name: 'Theme four', id: 'four' }
 ]
 
 const thematic = require('./thematic.js')
 // console.log(thematic)
 
 test('isDefaultTheme', () => {
-  expect(thematic.isDefaultTheme({id: 'foo'})).toBe(false)
-  expect(thematic.isDefaultTheme({id: 'default-theme@mozilla.org'})).toBe(true)
-});
+  expect(thematic.isDefaultTheme({ id: 'foo' })).toBe(false)
+  expect(thematic.isDefaultTheme({ id: 'default-theme@mozilla.org' })).toBe(true)
+})
 
 test('chooseLength with a length of two is always the other one', () => {
-  items = {userThemes: [1,2]}
-  expect(thematic.chooseNext(0, {random: false}, items)).toBe(1)
-  expect(thematic.chooseNext(1, {random: false}, items)).toBe(0)
-  expect(thematic.chooseNext(0, {random: true}, items)).toBe(1)
-  expect(thematic.chooseNext(1, {random: true}, items)).toBe(0)
-});
+  const items = { userThemes: [1, 2] }
+  expect(thematic.chooseNext(0, { random: false }, items)).toBe(1)
+  expect(thematic.chooseNext(1, { random: false }, items)).toBe(0)
+  expect(thematic.chooseNext(0, { random: true }, items)).toBe(1)
+  expect(thematic.chooseNext(1, { random: true }, items)).toBe(0)
+})
 
 test('chooseLength with a length of three rotates', () => {
-  items = {userThemes: [1,2,3]}
-  expect(thematic.chooseNext(0, {random: false}, items)).toBe(1)
-  expect(thematic.chooseNext(1, {random: false}, items)).toBe(2)
-  expect(thematic.chooseNext(2, {random: false}, items)).toBe(0)
-});
+  const items = { userThemes: [1, 2, 3] }
+  expect(thematic.chooseNext(0, { random: false }, items)).toBe(1)
+  expect(thematic.chooseNext(1, { random: false }, items)).toBe(2)
+  expect(thematic.chooseNext(2, { random: false }, items)).toBe(0)
+})
 
 test('getCurrentId', () => {
-  expect(thematic.getCurrentId({currentId: 'foo'}, [], {})).toBe('foo')
-  expect(thematic.getCurrentId({}, [{id: 'foo'}], {})).toBe('foo')
-  expect(thematic.getCurrentId({}, [], {id: 'foo'})).toBe('foo')
+  expect(thematic.getCurrentId({ currentId: 'foo' }, [], {})).toBe('foo')
+  expect(thematic.getCurrentId({}, [{ id: 'foo' }], {})).toBe('foo')
+  expect(thematic.getCurrentId({}, [], { id: 'foo' })).toBe('foo')
 })
 
 test('getDefaultTheme', () => {
-  theme = {name: 'Default', id: 'foo'}
+  let theme = { name: 'Default', id: 'foo' }
   expect(thematic.getDefaultTheme([theme])).toBe(theme)
 
-  theme = {name: 'foo', id: 'default-theme@mozilla.org'}
+  theme = { name: 'foo', id: 'default-theme@mozilla.org' }
   expect(thematic.getDefaultTheme([theme])).toBe(theme)
 
-  theme = {name: 'foo', id: 'foo'}
+  theme = { name: 'foo', id: 'foo' }
   expect(thematic.getDefaultTheme([theme])).toBeUndefined()
 })
 
 test('buildToolsMenuItem', () => {
-  expected = [{ id: 'one', type: 'normal', title: 'Theme one', contexts: [ 'tools_menu' ]}]
+  const expected = [{ id: 'one', type: 'normal', title: 'Theme one', contexts: ['tools_menu'] }]
   thematic.buildToolsMenuItem(aBunchOfThemes[0])
   expect(menus).toStrictEqual(expected)
 })

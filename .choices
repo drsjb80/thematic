@@ -1,11 +1,14 @@
 # https://extensionworkshop.com/documentation/develop/getting-started-with-web-ext/
-npx web-ext run
-npx web-ext run --verbose
-npx web-ext lint
-npx web-ext build --overwrite-dest
+npm install web-ext --global
+web-ext run
+web-ext run --verbose
+web-ext lint
+web-ext build --overwrite-dest
+----
+npm install eslint --global
+eslint --fix src/thematic.test.js
+----
+npm install jest --global
+jest
 ----
 npx web-ext sign --api-key=$AMO_JWT_ISSUER --api-secret=$AMO_JWT_SECRET
-----
-npm install --global web-ext
-npm install --save-dev jest
-npm install jest --global

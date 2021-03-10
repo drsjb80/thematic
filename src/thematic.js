@@ -3,13 +3,13 @@
 
 'use strict'
 
-function getDefaultTheme(allThemes) {
-  let themes = allThemes.filter(info => info.name === 'Default')
+function getDefaultTheme (allThemes) {
+  const themes = allThemes.filter(info => info.name === 'Default')
   if (themes.length > 0) {
     return themes[0]
   }
 
-  for (let theme of allThemes) {
+  for (const theme of allThemes) {
     if (isDefaultTheme(theme)) {
       return theme
     }
@@ -17,7 +17,7 @@ function getDefaultTheme(allThemes) {
   console.log('No default theme found!')
 }
 
-function getCurrentId(c, userThemes, defaultTheme) {
+function getCurrentId (c, userThemes, defaultTheme) {
   if (Object.keys(c).length !== 0) {
     return c.currentId
   }
@@ -36,10 +36,10 @@ function buildThemes () {
     const allThemes = allExtensions.filter(info => info.type === 'theme')
 
     browser.storage.local.get('currentId').then((c) => {
-      let defaultTheme = getDefaultTheme(allThemes)
-      let defaultThemes = allThemes.filter(theme => isDefaultTheme(theme))
-      let userThemes = allThemes.filter(theme => !isDefaultTheme(theme))
-      let currentId = getCurrentId(c, userThemes, defaultTheme)
+      const defaultTheme = getDefaultTheme(allThemes)
+      const defaultThemes = allThemes.filter(theme => isDefaultTheme(theme))
+      const userThemes = allThemes.filter(theme => !isDefaultTheme(theme))
+      const currentId = getCurrentId(c, userThemes, defaultTheme)
 
       const themes = {
         currentId: currentId,
@@ -76,7 +76,7 @@ if (typeof process !== 'undefined') {
   exports.buildToolsMenuItem = buildToolsMenuItem
 }
 
-function chooseNext(currentIndex, pref, items) {
+function chooseNext (currentIndex, pref, items) {
   if (pref.random) {
     let newIndex = currentIndex
     while (newIndex === currentIndex) {
@@ -167,7 +167,7 @@ function commands (command) {
   switch (command) {
     case 'Switch to default theme':
       browser.storage.local.get('defaultTheme').then((c) => {
-        let defaultTheme = c.defaultTheme
+        const defaultTheme = c.defaultTheme
         browser.storage.local.set({ currentId: defaultTheme.id }).then(() => {
           browser.management.setEnabled(defaultTheme.id, true)
           stopRotation()
@@ -196,31 +196,31 @@ function commands (command) {
 }
 browser.commands.onCommand.addListener(commands)
 
-function buildToolsMenuItem(theme) {
+function buildToolsMenuItem (theme) {
   browser.menus.create({
     id: theme.id,
     type: 'normal',
     title: theme.name,
-    contexts: ["tools_menu"]
+    contexts: ['tools_menu']
   })
 }
 
-function buildToolsMenu(themes) {
+function buildToolsMenu (themes) {
   browser.runtime.getBrowserInfo().then((info) => {
     if (info.name !== 'Thunderbird') {
       browser.menus.removeAll().then(() => {
-        for (let theme of themes.userThemes) {
+        for (const theme of themes.userThemes) {
           buildToolsMenuItem(theme)
         }
 
         if (themes.userThemes.length !== 0) {
           browser.menus.create({
             type: 'separator',
-            contexts: ["tools_menu"]
+            contexts: ['tools_menu']
           })
         }
 
-        for (let theme of themes.defaultThemes) {
+        for (const theme of themes.defaultThemes) {
           buildToolsMenuItem(theme)
         }
       }).catch((err) => console.log(err))
@@ -240,8 +240,8 @@ browser.management.onUninstalled.addListener(extensionInstalled)
 
 browser.menus.onClicked.addListener((info) => {
   console.log(info)
-  let currentId = info.menuItemId
-  browser.storage.local.set({currentId: currentId}).then(() => {
+  const currentId = info.menuItemId
+  browser.storage.local.set({ currentId: currentId }).then(() => {
     browser.management.setEnabled(currentId, true)
   }).catch((err) => console.log(err))
 })
