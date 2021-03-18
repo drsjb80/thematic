@@ -9,6 +9,7 @@ npm install eslint --global
 eslint --fix src/thematic.test.js
 ----
 npm install jest --global
-jest
+jest --coverage
+o coverage/lcov-report/index.html
 ----
 npx web-ext sign --api-key=$AMO_JWT_ISSUER --api-secret=$AMO_JWT_SECRET
