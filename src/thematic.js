@@ -74,6 +74,10 @@ if (typeof process !== 'undefined') {
   exports.getCurrentId = getCurrentId
   exports.getDefaultTheme = getDefaultTheme
   exports.buildToolsMenuItem = buildToolsMenuItem
+  exports.buildThemes = buildThemes
+  exports.stopRotation = stopRotation
+  exports.startRotation = startRotation
+  exports.rotate = rotate
 }
 
 function chooseNext (currentIndex, pref, items) {
@@ -90,6 +94,7 @@ function chooseNext (currentIndex, pref, items) {
 
 function rotate () {
   browser.storage.local.get().then((items) => {
+    console.log(items)
     if (items.userThemes.length <= 1) {
       return
     }
@@ -109,9 +114,9 @@ function rotate () {
 
       browser.storage.local.set({ currentId: currentId }).then(() => {
         browser.management.setEnabled(currentId, true)
-      }).catch((err) => console.log(err))
-    }).catch((err) => console.log(err))
-  }).catch((err) => console.log(err))
+      }).catch((err) => { console.log(err) })
+    }).catch((err) => { console.log(err) })
+  }).catch((err) => { console.log(err) })
 }
 browser.alarms.onAlarm.addListener(rotate)
 
@@ -122,10 +127,11 @@ function startRotation () {
         browser.alarms.clear('rotate')
         browser.storage.sync.get('minutes').then(a => {
           browser.alarms.create('rotate', { periodInMinutes: a.minutes })
-        }).catch((err) => console.log(err))
-      }).catch((err) => console.log(err))
+        }).catch((err) => { console.log(err) })
+      }).catch((err) => { console.log(err) })
     }
-  }).catch((err) => console.log(err))
+  }).catch((err) => { console.log(err) })
+  return Promise.resolve()
 }
 
 function stopRotation () {
@@ -133,15 +139,16 @@ function stopRotation () {
     if (info.name !== 'Thunderbird') {
       browser.storage.sync.set({ auto: false }).then(() => {
         browser.alarms.clear('rotate')
-      }).catch((err) => console.log(err))
+      }).catch((err) => { console.log(err) })
     }
-  }).catch((err) => console.log(err))
+  }).catch((err) => { console.log(err) })
+  return Promise.resolve()
 }
 
 browser.storage.sync.get('auto').then((pref) => {
   console.log(pref)
   if (pref.auto) {
-    startRotation()
+    startRotation().catch((err) => { console.log(err) })
   }
 })
 
@@ -149,11 +156,11 @@ function handleMessage (request, sender, sendResponse) {
   console.log('Message from the popup or options script: ' + request.message)
   switch (request.message) {
     case 'Start rotation':
-      startRotation()
+      startRotation().catch((err) => { console.log(err) })
       sendResponse({ response: 'OK' })
       break
     case 'Stop rotation':
-      stopRotation()
+      stopRotation().catch((err) => { console.log(err) })
       sendResponse({ response: 'OK' })
       break
     default:
@@ -170,7 +177,7 @@ function commands (command) {
         const defaultTheme = c.defaultTheme
         browser.storage.local.set({ currentId: defaultTheme.id }).then(() => {
           browser.management.setEnabled(defaultTheme.id, true)
-          stopRotation()
+          stopRotation().catch((err) => { console.log(err) })
         })
       })
       break
@@ -180,12 +187,16 @@ function commands (command) {
     case 'Toggle autoswitching':
       browser.storage.sync.get('auto').then((pref) => {
         if (pref.auto) {
-          stopRotation()
-          browser.storage.sync.set({ auto: false }).catch(console.log)
+          stopRotation().catch((err) => { console.log(err) })
+          browser.storage.sync.set({ auto: false }).catch((err) => {
+            console.log(err)
+          })
         } else {
-          startRotation()
+          startRotation().catch((err) => { console.log(err) })
           rotate()
-          browser.storage.sync.set({ auto: true }).catch(console.log)
+          browser.storage.sync.set({ auto: true }).catch((err) => {
+            console.log(err)
+          })
         }
       })
       break
@@ -223,9 +234,9 @@ function buildToolsMenu (themes) {
         for (const theme of themes.defaultThemes) {
           buildToolsMenuItem(theme)
         }
-      }).catch((err) => console.log(err))
+      }).catch((err) => { console.log(err) })
     }
-  }).catch((err) => console.log(err))
+  }).catch((err) => { console.log(err) })
 }
 
 buildThemes()
@@ -243,5 +254,5 @@ browser.menus.onClicked.addListener((info) => {
   const currentId = info.menuItemId
   browser.storage.local.set({ currentId: currentId }).then(() => {
     browser.management.setEnabled(currentId, true)
-  }).catch((err) => console.log(err))
+  }).catch((err) => { console.log(err) })
 })

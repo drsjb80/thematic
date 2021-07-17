@@ -10,6 +10,9 @@ about:devtools-toolbox?id=drsjb80%40gmail.com&type=extension
     * https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/version/format
     * https://developer.chrome.com/docs/extensions/mv2/manifest/version/
 
+### Storage
+    * https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/storage
+
 ### Options
     * https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/user\_interface/Options\_pages
 
