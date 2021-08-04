@@ -3,11 +3,6 @@
 
 'use strict'
 
-if (typeof browser === 'undefined') {
-  let bm = require('./thematic.test.js')
-  browser = bm.browser
-}
-
 function getDefaultTheme (allThemes) {
   const themes = allThemes.filter(info => info.name === 'Default')
   if (themes.length > 0) {
@@ -36,27 +31,24 @@ function getCurrentId (c, userThemes, defaultTheme) {
   return defaultTheme.id
 }
 
-function buildThemes () {
-  browser.management.getAll().then((allExtensions) => {
-    const allThemes = allExtensions.filter(info => info.type === 'theme')
+async function buildThemes () {
+  const allExtensions = await browser.management.getAll()
+  const allThemes = allExtensions.filter(info => info.type === 'theme')
 
-    browser.storage.local.get('currentId').then((c) => {
-      const defaultTheme = getDefaultTheme(allThemes)
-      const defaultThemes = allThemes.filter(theme => isDefaultTheme(theme))
-      const userThemes = allThemes.filter(theme => !isDefaultTheme(theme))
-      const currentId = getCurrentId(c, userThemes, defaultTheme)
+  const c = await browser.storage.local.get('currentId')
+  const defaultTheme = getDefaultTheme(allThemes)
+  const defaultThemes = allThemes.filter(theme => isDefaultTheme(theme))
+  const userThemes = allThemes.filter(theme => !isDefaultTheme(theme))
+  const currentId = getCurrentId(c, userThemes, defaultTheme)
 
-      const themes = {
-        currentId: currentId,
-        defaultTheme: defaultTheme,
-        defaultThemes: defaultThemes,
-        userThemes: userThemes
-      }
-      browser.storage.local.set(themes).then(() => {
-        buildToolsMenu(themes)
-      }).catch((err) => { console.log(err) })
-    }).catch((err) => { console.log(err) })
-  }).catch((err) => { console.log(err) })
+  const themes = {
+    currentId: currentId,
+    defaultTheme: defaultTheme,
+    defaultThemes: defaultThemes,
+    userThemes: userThemes
+  }
+  await browser.storage.local.set(themes)
+  buildToolsMenu(themes)
 }
 
 function isDefaultTheme (theme) {
@@ -73,6 +65,7 @@ function isDefaultTheme (theme) {
   ].includes(theme.id)
 }
 
+// export for testing
 if (typeof process !== 'undefined') {
   exports.isDefaultTheme = isDefaultTheme
   exports.chooseNext = chooseNext
@@ -83,6 +76,8 @@ if (typeof process !== 'undefined') {
   exports.stopRotation = stopRotation
   exports.startRotation = startRotation
   exports.rotate = rotate
+  exports.handleMessage = handleMessage
+  exports.commands = commands
 }
 
 function chooseNext (currentIndex, pref, items) {
@@ -97,61 +92,51 @@ function chooseNext (currentIndex, pref, items) {
   return (currentIndex + 1) % items.userThemes.length
 }
 
-function rotate () {
-  browser.storage.local.get().then((items) => {
-    console.log(items)
-    if (items.userThemes.length <= 1) {
-      return
-    }
+async function rotate () {
+  const items = await browser.storage.local.get()
 
-    let currentId = items.currentId
-    let currentIndex = items.userThemes.findIndex((t) => t.id === currentId)
+  if (items.userThemes.length <= 1) {
+    return
+  }
 
-    if (currentIndex === -1) {
-      // this will get resolved below as 1 will be added to this :/
-      console.log('User theme index not found')
-    }
+  const currentId = items.currentId
+  const currentIndex = items.userThemes.findIndex((t) => t.id === currentId)
 
-    browser.storage.sync.get('random').then((pref) => {
-      currentIndex = chooseNext(currentIndex, pref, items)
-      currentId = items.userThemes[currentIndex].id
-      console.log(currentId)
+  if (currentIndex === -1) {
+    // this will get resolved below as 1 will be added to this :/
+    console.log('User theme index not found')
+  }
 
-      browser.storage.local.set({ currentId: currentId }).then(() => {
-        browser.management.setEnabled(currentId, true)
-      }).catch((err) => { console.log(err) })
-    }).catch((err) => { console.log(err) })
-  }).catch((err) => { console.log(err) })
+  const pref = await browser.storage.sync.get('random')
+  currentIndex = chooseNext(currentIndex, pref, items)
+  currentId = items.userThemes[currentIndex].id
+  console.log(currentId)
+
+  await browser.storage.local.set({ currentId: currentId })
+  browser.management.setEnabled(currentId, true)
 }
+
 browser.alarms.onAlarm.addListener(rotate)
 
-function startRotation () {
-  browser.runtime.getBrowserInfo().then((info) => {
-    if (info.name !== 'Thunderbird') {
-      browser.storage.sync.set({ auto: true }).then(() => {
-        browser.alarms.clear('rotate')
-        browser.storage.sync.get('minutes').then(a => {
-          browser.alarms.create('rotate', { periodInMinutes: a.minutes })
-        }).catch((err) => { console.log(err) })
-      }).catch((err) => { console.log(err) })
-    }
-  }).catch((err) => { console.log(err) })
-  return Promise.resolve()
+async function startRotation () {
+  const info = await browser.runtime.getBrowserInfo()
+  if (info.name !== 'Thunderbird') {
+    await browser.storage.sync.set({ auto: true })
+    const a = await browser.storage.sync.get('minutes')
+    await browser.alarms.create('rotate', { periodInMinutes: a.minutes })
+  }
 }
 
-function stopRotation () {
-  browser.runtime.getBrowserInfo().then((info) => {
-    if (info.name !== 'Thunderbird') {
-      browser.storage.sync.set({ auto: false }).then(() => {
-        browser.alarms.clear('rotate')
-      }).catch((err) => { console.log(err) })
-    }
-  }).catch((err) => { console.log(err) })
-  return Promise.resolve()
+async function stopRotation () {
+  const info = await browser.runtime.getBrowserInfo()
+  if (info.name !== 'Thunderbird') {
+    await browser.storage.sync.set({ auto: false })
+    await browser.alarms.clear('rotate')
+  }
 }
 
 browser.storage.sync.get('auto').then((pref) => {
-  console.log(pref)
+  // console.log(pref)
   if (pref.auto) {
     startRotation().catch((err) => { console.log(err) })
   }
@@ -170,8 +155,11 @@ function handleMessage (request, sender, sendResponse) {
       break
     default:
       console.log('Unknown message received')
+      sendResponse({ response: 'Not OK' })
+      break
   }
 }
+
 browser.runtime.onMessage.addListener(handleMessage)
 
 function commands (command) {
@@ -203,7 +191,7 @@ function commands (command) {
             console.log(err)
           })
         }
-      })
+      }).catch((err) => { console.log(err) })
       break
     default:
       console.log(`${command} not recognized`)
@@ -221,27 +209,28 @@ function buildToolsMenuItem (theme) {
   })
 }
 
-function buildToolsMenu (themes) {
-  browser.runtime.getBrowserInfo().then((info) => {
-    if (info.name !== 'Thunderbird') {
-      browser.menus.removeAll().then(() => {
-        for (const theme of themes.userThemes) {
-          buildToolsMenuItem(theme)
-        }
+async function buildToolsMenu (themes) {
+  const info = await browser.runtime.getBrowserInfo()
 
-        if (themes.userThemes.length !== 0) {
-          browser.menus.create({
-            type: 'separator',
-            contexts: ['tools_menu']
-          })
-        }
+  if (info.name === 'Thunderbird') {
+    return
+  }
 
-        for (const theme of themes.defaultThemes) {
-          buildToolsMenuItem(theme)
-        }
-      }).catch((err) => { console.log(err) })
-    }
-  }).catch((err) => { console.log(err) })
+  await browser.menus.removeAll()
+  for (const theme of themes.userThemes) {
+    buildToolsMenuItem(theme)
+  }
+
+  if (themes.userThemes.length !== 0) {
+    browser.menus.create({
+      type: 'separator',
+      contexts: ['tools_menu']
+    })
+  }
+
+  for (const theme of themes.defaultThemes) {
+    buildToolsMenuItem(theme)
+  }
 }
 
 buildThemes()

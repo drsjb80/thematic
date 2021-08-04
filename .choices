@@ -1,4 +1,10 @@
 # https://extensionworkshop.com/documentation/develop/getting-started-with-web-ext/
+npm install web-ext
+./node_modules/.bin/web-ext run
+./node_modules/.bin/web-ext run --verbose
+./node_modules/.bin/web-ext lint
+./node_modules/.bin/web-ext build --overwrite-dest
+----
 npm install web-ext --global
 web-ext run
 web-ext run --verbose
@@ -10,4 +16,8 @@ eslint --fix src/thematic.test.js
 ----
 npm install jest --global
 jest --coverage
+----
+npm install jest
+./node_modules/.bin/jest --coverage
+----
 npx web-ext sign --api-key=$AMO_JWT_ISSUER --api-secret=$AMO_JWT_SECRET

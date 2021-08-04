@@ -2,21 +2,32 @@
 /* global test, expect */
 
 let menus = []
-let locals = {}
-let syncs = {}
+let locals = {
+  userThemes: [ { type: 'theme', id: "usertheme@usertheme.ort", name: "user", description: "A user theme." },
+  ]
+}
+let syncs = {
+  minutes: 15
+}
+
+let clearCalledWith = []
+let createCalledWith = []
+
+let logMessages = []
+if (true) {
+  console = {
+    log: function(f) { logMessages.push(f) }
+  }
+}
 
 // can't be let, const, or var
-
 browser = {
   alarms: {
-    clearCalledWith: [],
     clear: function (f) {
-      this.clearCalledWith.push(f)
-      return undefined
+      clearCalledWith.push(f)
     },
-    createCalledWith: [],
     create: function(f, t) {
-      this.createCalledWith.push(f, t)
+      createCalledWith.push([f, t])
     },
     onAlarm: {
       onAlarmAddListenerCalledWith: [],
@@ -30,24 +41,28 @@ browser = {
     sync: {
       // i know the follwing isn't DRY, haven't figured out how to fix it yet.
       get: function (f) {
-        if (typeof syncs.f === 'undefined') {
+        if (typeof syncs[f] === 'undefined') {
           return Promise.resolve({})
         }
-        return Promise.resolve(syncs.f)
+
+        return Promise.resolve(syncs)
       },
       set: function (f) {
-        console.log(syncs)
         syncs = {...syncs, ...f}
-        console.log(syncs)
         return Promise.resolve()
       },
     },
     local: {
       // i know the follwing isn't DRY, haven't figured out how to fix it yet.
       get: function (f) {
+        if (typeof f === 'undefined') {
+          return Promise.resolve(locals)
+        }
+
         if (typeof locals.f === 'undefined') {
           return Promise.resolve({})
         }
+
         return Promise.resolve(locals.f)
       },
       set: function (f) {
@@ -94,8 +109,6 @@ browser = {
     onClicked: { addListener: function (f) { return undefined } },
   }
 }
-
-exports.browser = browser
 
 /*
 browser.runtime.onMessage.addListener('foo')
@@ -144,8 +157,12 @@ test('chooseLength with a length of three rotates', () => {
 
 test('getCurrentId', () => {
   expect(thematic.getCurrentId({ currentId: 'foo' }, [], {})).toBe('foo')
+
   expect(thematic.getCurrentId({}, [{ id: 'foo' }], {})).toBe('foo')
+  expect(logMessages.pop()).toBe('Setting currentId to first user theme')
+
   expect(thematic.getCurrentId({}, [], { id: 'foo' })).toBe('foo')
+  expect(logMessages.pop()).toBe('Setting currentId to default theme')
 })
 
 test('getDefaultTheme', () => {
@@ -157,6 +174,7 @@ test('getDefaultTheme', () => {
 
   theme = { name: 'foo', id: 'foo' }
   expect(thematic.getDefaultTheme([theme])).toBeUndefined()
+  expect(logMessages.pop()).toBe('No default theme found!')
 })
 
 test('buildToolsMenuItem', () => {
@@ -213,20 +231,37 @@ test('startRotation', () => {
   syncs['minutes'] = 15
   thematic.startRotation().then(() => {
     expect(syncs['auto']).toBe(true)
-    expect(browser.alarms.createCalledWith.length()).toBe(1)
-    expect(browser.alarms.createCalledWith.pop()).toBe('rotate')
+    expect(createCalledWith.length).toBe(1)
+    expect(createCalledWith.pop()[0]).toBe('rotate')
   })
 })
 
 test('stopRotation', () => {
   thematic.stopRotation().then(() => {
     expect(syncs['auto']).toBe(false)
-    expect(browser.alarms.clearCalledWith.length()).toBe(1)
-    expect(browser.alarms.clearCalledWith.pop()).toBe('rotate')
+    expect(clearCalledWith.length).toBe(1)
+    expect(clearCalledWith.pop()).toBe('rotate')
   })
 })
 
 test('rotate', () => {
   locals = {userThemes: []}
   thematic.rotate()
+})
+
+let response = ''
+function receiveResponse(m) { response = m }
+
+test('handleMessage', () => {
+  thematic.handleMessage({message: 'Start rotation'}, {}, receiveResponse)
+  expect(response).toStrictEqual({"response": 'OK'})
+  thematic.handleMessage({message: 'Stop rotation'}, {}, receiveResponse)
+  expect(response).toStrictEqual({"response": 'OK'})
+  thematic.handleMessage({message: 'Bad message'}, {}, receiveResponse)
+  expect(response).toStrictEqual({"response": 'Not OK'})
+})
+
+test('commands', () => {
+  thematic.commands('bad command')
+  expect(logMessages.pop()).toBe('bad command not recognized')
 })
