@@ -38,6 +38,8 @@ browser = {
   }
 }
 
+exports.browser = browser
+
 /*
 browser.runtime.onMessage.addListener('foo')
 browser.alarms.clear('rotate')
@@ -106,3 +108,4 @@ test('buildToolsMenuItem', () => {
   thematic.buildToolsMenuItem(aBunchOfThemes[0])
   expect(menus).toStrictEqual(expected)
 })
+

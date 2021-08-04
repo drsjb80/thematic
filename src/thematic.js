@@ -3,6 +3,11 @@
 
 'use strict'
 
+if (typeof browser === 'undefined') {
+  let bm = require('./thematic.test.js')
+  browser = bm.browser
+}
+
 function getDefaultTheme (allThemes) {
   const themes = allThemes.filter(info => info.name === 'Default')
   if (themes.length > 0) {
