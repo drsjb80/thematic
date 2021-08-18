@@ -3,9 +3,11 @@
 
 'use strict'
 
-module.exports = { isDefaultTheme, chooseNext, getCurrentId, getDefaultTheme,
-  buildToolsMenuItem, buildThemes, stopRotation, startRotation, rotate,
-  handleMessage, commands
+if (typeof process !== 'undefined') {
+  module.exports = { isDefaultTheme, chooseNext, getCurrentId, getDefaultTheme,
+    buildToolsMenuItem, buildThemes, stopRotation, startRotation, rotate,
+    handleMessage, commands
+  }
 }
 
 function getDefaultTheme (allThemes) {
@@ -56,6 +58,14 @@ async function buildThemes () {
   buildToolsMenu(themes)
 }
 
+// https://stackoverflow.com/questions/49432579/await-is-only-valid-in-async-function
+// bleah
+async function buildThemesHelper() {
+  await buildThemes()
+}
+
+buildThemesHelper()
+
 function isDefaultTheme (theme) {
   return [
     'firefox-compact-dark@mozilla.org@personas.mozilla.org',
@@ -71,6 +81,8 @@ function isDefaultTheme (theme) {
 }
 
 function chooseNext (currentIndex, pref, items) {
+  console.log(currentIndex)
+  console.log(items)
   if (pref.random) {
     let newIndex = currentIndex
     while (newIndex === currentIndex) {
@@ -167,7 +179,11 @@ function commands (command) {
     case 'Rotate to next theme':
       // https://stackoverflow.com/questions/25649097/nodejs-override-a-function-in-a-module
       // allow Jest's mocking to occur
-      module.exports.rotate()
+      if (typeof process !== 'undefined') {
+        module.exports.rotate()
+      } else {
+        rotate()
+      }
       break
     case 'Toggle autoswitching':
       browser.storage.sync.get('auto').then((pref) => {
@@ -190,6 +206,7 @@ function commands (command) {
       break
   }
 }
+
 browser.commands.onCommand.addListener(commands)
 
 function buildToolsMenuItem (theme) {
@@ -225,11 +242,9 @@ async function buildToolsMenu (themes) {
   }
 }
 
-buildThemes()
-
 function extensionInstalled (info) {
   if (info.type === 'theme') {
-    buildThemes()
+    buildThemesHelper()
   }
 }
 browser.management.onInstalled.addListener(extensionInstalled)
