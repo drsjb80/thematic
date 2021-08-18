@@ -3,6 +3,11 @@
 
 'use strict'
 
+module.exports = { isDefaultTheme, chooseNext, getCurrentId, getDefaultTheme,
+  buildToolsMenuItem, buildThemes, stopRotation, startRotation, rotate,
+  handleMessage, commands
+}
+
 function getDefaultTheme (allThemes) {
   const themes = allThemes.filter(info => info.name === 'Default')
   if (themes.length > 0) {
@@ -63,21 +68,6 @@ function isDefaultTheme (theme) {
     'thunderbird-compact-light@mozilla.org',
     '{972ce4c6-7e08-4474-a285-3208198ce6fd}'
   ].includes(theme.id)
-}
-
-// export for testing
-if (typeof process !== 'undefined') {
-  exports.isDefaultTheme = isDefaultTheme
-  exports.chooseNext = chooseNext
-  exports.getCurrentId = getCurrentId
-  exports.getDefaultTheme = getDefaultTheme
-  exports.buildToolsMenuItem = buildToolsMenuItem
-  exports.buildThemes = buildThemes
-  exports.stopRotation = stopRotation
-  exports.startRotation = startRotation
-  exports.rotate = rotate
-  exports.handleMessage = handleMessage
-  exports.commands = commands
 }
 
 function chooseNext (currentIndex, pref, items) {
@@ -175,7 +165,9 @@ function commands (command) {
       })
       break
     case 'Rotate to next theme':
-      rotate()
+      // https://stackoverflow.com/questions/25649097/nodejs-override-a-function-in-a-module
+      // allow Jest's mocking to occur
+      module.exports.rotate()
       break
     case 'Toggle autoswitching':
       browser.storage.sync.get('auto').then((pref) => {

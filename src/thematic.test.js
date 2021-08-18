@@ -1,6 +1,13 @@
 // vim: ts=2 sw=2 expandtab
 /* global test, expect */
 
+let logMessages = []
+if (true) {
+  console = {
+    log: function(f) { logMessages.push(f) }
+  }
+}
+
 let menus = []
 let locals = {
   userThemes: [ { type: 'theme', id: "usertheme@usertheme.ort", name: "user", description: "A user theme." },
@@ -12,13 +19,6 @@ let syncs = {
 
 let clearCalledWith = []
 let createCalledWith = []
-
-let logMessages = []
-if (true) {
-  console = {
-    log: function(f) { logMessages.push(f) }
-  }
-}
 
 // can't be let, const, or var
 browser = {
@@ -247,6 +247,7 @@ test('stopRotation', () => {
 test('rotate', () => {
   locals = {userThemes: []}
   thematic.rotate()
+  // expect(logMessages.pop()).toBe('User theme index not found')
 })
 
 let response = ''
@@ -264,4 +265,12 @@ test('handleMessage', () => {
 test('commands', () => {
   thematic.commands('bad command')
   expect(logMessages.pop()).toBe('bad command not recognized')
+
+  const fn = jest.fn(() => console.log('rotate'))
+  thematic.rotate = fn
+  thematic.commands('Rotate to next theme')
+  expect(fn).toHaveBeenCalled()
+  expect(thematic.rotate.mock.calls.length).toBe(1)
 })
+
+
