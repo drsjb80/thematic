@@ -10,12 +10,13 @@ if (true) {
 
 let menus = []
 let locals = {
-  userThemes: [ { type: 'theme', id: "usertheme@usertheme.ort", name: "user", description: "A user theme." },
+  userThemes: [ { type: 'theme', id: "usertheme@usertheme.org", name: "user", description: "A user theme." },
   ]
 }
 let syncs = {
   minutes: 15
 }
+let enabled = []
 
 let clearCalledWith = []
 let createCalledWith = []
@@ -99,7 +100,10 @@ browser = {
       ]
       return Promise.resolve(builtins)
     },
-    setEnabled: function (f) { return undefined },
+    setEnabled: function (variable, value) {
+      enabled.push([variable, value])
+      return
+    },
     onInstalled: { addListener: function (f) { return undefined } },
     onUninstalled: { addListener: function (f) { return undefined } },
   },
@@ -140,19 +144,25 @@ test('isDefaultTheme', () => {
   expect(thematic.isDefaultTheme({ id: 'default-theme@mozilla.org' })).toBe(true)
 })
 
-test('chooseLength with a length of two is always the other one', () => {
-  const items = { userThemes: [1, 2] }
-  expect(thematic.chooseNext(0, { random: false }, items)).toBe(1)
-  expect(thematic.chooseNext(1, { random: false }, items)).toBe(0)
-  expect(thematic.chooseNext(0, { random: true }, items)).toBe(1)
-  expect(thematic.chooseNext(1, { random: true }, items)).toBe(0)
-})
+test('chooseNext', async () => {
+  let items = { userThemes: [1, 2] }
+  syncs.random = false
+  expect(await thematic.chooseNext(0, items)).toBe(1)
+  expect(await thematic.chooseNext(1, items)).toBe(0)
+  syncs.random = true
+  expect(await thematic.chooseNext(0, items)).toBe(1)
+  expect(await thematic.chooseNext(1, items)).toBe(0)
 
-test('chooseLength with a length of three rotates', () => {
-  const items = { userThemes: [1, 2, 3] }
-  expect(thematic.chooseNext(0, { random: false }, items)).toBe(1)
-  expect(thematic.chooseNext(1, { random: false }, items)).toBe(2)
-  expect(thematic.chooseNext(2, { random: false }, items)).toBe(0)
+  items = { userThemes: [1, 2, 3] }
+  syncs.random = false
+  expect(await thematic.chooseNext(0, items)).toBe(1)
+  expect(await thematic.chooseNext(1, items)).toBe(2)
+  expect(await thematic.chooseNext(2, items)).toBe(0)
+
+  /* this locks up jest for no apparent reason
+  syncs.random = true
+  expect(await thematic.chooseNext(0, items)).not.toBe(0)
+  */
 })
 
 test('getCurrentId', () => {
@@ -244,10 +254,54 @@ test('stopRotation', () => {
   })
 })
 
-test('rotate', () => {
+test('rotate', async () => {
   locals = {userThemes: []}
-  thematic.rotate()
-  // expect(logMessages.pop()).toBe('User theme index not found')
+  await thematic.rotate()
+  expect(logMessages.pop()).toBe('No user themes found!')
+
+  locals = {
+    userThemes: [
+      {
+        type: 'theme',
+        id: "usertheme@usertheme.org",
+        name: "user", description: "A user theme."
+      },
+    ],
+  }
+  await thematic.rotate()
+  expect(logMessages.pop()).toBe('No current theme Id found!')
+
+  locals = {
+    userThemes: [
+      {
+        type: 'theme',
+        id: "usertheme@usertheme.org",
+        name: "user", description: "A user theme."
+      },
+    ],
+    currentId: 'Missing',
+  }
+  enabled = []
+  await thematic.rotate()
+  expect(logMessages.pop()).toBe('usertheme@usertheme.org')
+  expect(logMessages.pop()).toBe('User theme index not found')
+  expect(locals.currentId).toBe('usertheme@usertheme.org')
+  expect(enabled).toStrictEqual([["usertheme@usertheme.org", true]])
+
+  locals = {
+    userThemes: [
+      {
+        type: 'theme',
+        id: "usertheme@usertheme.org",
+        name: "user", description: "A user theme."
+      },
+    ],
+    currentId: 'usertheme@usertheme.org',
+  }
+  enabled = []
+  await thematic.rotate()
+  expect(logMessages.pop()).toBe('usertheme@usertheme.org')
+  expect(enabled).toStrictEqual([["usertheme@usertheme.org", true]])
 })
 
 let response = ''
@@ -266,11 +320,8 @@ test('commands', () => {
   thematic.commands('bad command')
   expect(logMessages.pop()).toBe('bad command not recognized')
 
-  const fn = jest.fn(() => console.log('rotate'))
-  thematic.rotate = fn
+  thematic.rotate = jest.fn()
   thematic.commands('Rotate to next theme')
-  expect(fn).toHaveBeenCalled()
+  expect(thematic.rotate).toHaveBeenCalled()
   expect(thematic.rotate.mock.calls.length).toBe(1)
 })
-
-

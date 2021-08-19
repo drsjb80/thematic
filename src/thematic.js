@@ -66,6 +66,14 @@ async function buildThemesHelper() {
 
 buildThemesHelper()
 
+/*
+async function asyncHelper(fn) {
+  await fn()
+}
+
+asyncHelper(buildThemes)
+*/
+
 function isDefaultTheme (theme) {
   return [
     'firefox-compact-dark@mozilla.org@personas.mozilla.org',
@@ -97,9 +105,15 @@ async function rotate () {
   const items = await browser.storage.local.get()
 
   if (items.userThemes.length < 1) {
+    console.log('No user themes found!')
     return
   }
 
+  if (typeof items.currentId === 'undefined') {
+    console.log('No current theme Id found!')
+    return
+  }
+    
   let currentId = items.currentId
   let currentIndex = items.userThemes.findIndex((t) => t.id === currentId)
 
@@ -136,7 +150,6 @@ async function stopRotation () {
 }
 
 browser.storage.sync.get('auto').then((pref) => {
-  // console.log(pref)
   if (pref.auto) {
     startRotation().catch((err) => { console.log(err) })
   }
@@ -224,11 +237,12 @@ async function buildToolsMenu (themes) {
   }
 
   await browser.menus.removeAll()
-  for (const theme of themes.userThemes) {
-    buildToolsMenuItem(theme)
-  }
 
   if (themes.userThemes.length !== 0) {
+    for (const theme of themes.userThemes) {
+      buildToolsMenuItem(theme)
+    }
+
     browser.menus.create({
       type: 'separator',
       contexts: ['tools_menu']
