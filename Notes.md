@@ -1,3 +1,5 @@
+shift-command-J
+
 about:devtools-toolbox?id=drsjb80%40gmail.com&type=extension
 
 ### General extension development

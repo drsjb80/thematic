@@ -80,9 +80,8 @@ function isDefaultTheme (theme) {
   ].includes(theme.id)
 }
 
-function chooseNext (currentIndex, pref, items) {
-  console.log(currentIndex)
-  console.log(items)
+async function chooseNext (currentIndex, items) {
+  const pref = await browser.storage.sync.get('random')
   if (pref.random) {
     let newIndex = currentIndex
     while (newIndex === currentIndex) {
@@ -97,20 +96,19 @@ function chooseNext (currentIndex, pref, items) {
 async function rotate () {
   const items = await browser.storage.local.get()
 
-  if (items.userThemes.length <= 1) {
+  if (items.userThemes.length < 1) {
     return
   }
 
-  const currentId = items.currentId
-  const currentIndex = items.userThemes.findIndex((t) => t.id === currentId)
+  let currentId = items.currentId
+  let currentIndex = items.userThemes.findIndex((t) => t.id === currentId)
 
   if (currentIndex === -1) {
     // this will get resolved below as 1 will be added to this :/
     console.log('User theme index not found')
   }
 
-  const pref = await browser.storage.sync.get('random')
-  currentIndex = chooseNext(currentIndex, pref, items)
+  currentIndex = await chooseNext(currentIndex, items)
   currentId = items.userThemes[currentIndex].id
   console.log(currentId)
 
