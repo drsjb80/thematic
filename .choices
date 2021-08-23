@@ -5,17 +5,9 @@ npm install web-ext
 ./node_modules/.bin/web-ext lint
 ./node_modules/.bin/web-ext build --overwrite-dest
 ----
-npm install web-ext --global
-web-ext run
-web-ext run --verbose
-web-ext lint
-web-ext build --overwrite-dest
-----
-npm install eslint --global
-eslint --fix src/thematic.test.js
-----
-npm install jest --global
-jest --coverage
+npm install eslint
+./node_modules/.bin/eslint --fix src/thematic.js
+./node_modules/.bin/eslint --fix src/thematic.test.js
 ----
 npm install jest
 ./node_modules/.bin/jest --coverage

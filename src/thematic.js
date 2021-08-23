@@ -7,9 +7,18 @@ if (typeof process === 'undefined') {
   var module = {}
 }
 
-module.exports = { isDefaultTheme, chooseNext, getCurrentId, getDefaultTheme,
-  buildToolsMenuItem, buildThemes, stopRotation, startRotation, rotate,
-  handleMessage, commands
+module.exports = {
+  isDefaultTheme,
+  chooseNext,
+  getCurrentId,
+  getDefaultTheme,
+  buildToolsMenuItem,
+  buildThemes,
+  stopRotation,
+  startRotation,
+  rotate,
+  handleMessage,
+  commands
 }
 
 function getDefaultTheme (allThemes) {
@@ -62,7 +71,7 @@ async function buildThemes () {
 
 // https://stackoverflow.com/questions/49432579/await-is-only-valid-in-async-function
 // bleah
-async function buildThemesHelper() {
+async function buildThemesHelper () {
   await buildThemes()
 }
 
@@ -115,7 +124,7 @@ async function rotate () {
     console.log('No current theme Id found!')
     return
   }
-    
+
   let currentId = items.currentId
   let currentIndex = items.userThemes.findIndex((t) => t.id === currentId)
 
@@ -179,7 +188,7 @@ browser.runtime.onMessage.addListener(handleMessage)
 
 // allow Jest's mocking to occur
 // https://stackoverflow.com/questions/25649097/nodejs-override-a-function-in-a-module
-function jestTest(fn, testfn) {
+function jestTest (fn, testfn) {
   if (typeof process === 'undefined') {
     fn()
   } else {
@@ -187,7 +196,7 @@ function jestTest(fn, testfn) {
   }
 }
 
-async function jestTestAwait(fn, testfn) {
+async function jestTestAwait (fn, testfn) {
   if (typeof process === 'undefined') {
     await fn()
   } else {
@@ -196,7 +205,7 @@ async function jestTestAwait(fn, testfn) {
 }
 
 async function commands (command) {
-  console.log(command)
+  // console.log(command)
   switch (command) {
     case 'Switch to default theme':
       try {
@@ -234,7 +243,7 @@ async function commands (command) {
   }
 }
 
-async function commandsHelper(command) {
+async function commandsHelper (command) {
   await commands(command)
 }
 

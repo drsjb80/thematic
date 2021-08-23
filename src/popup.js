@@ -18,7 +18,6 @@ function buildMenuItem (theme) {
 }
 
 browser.storage.local.get().then((items) => {
-  // has to be let, can't be const
   const currentDiv = document.getElementById('popup-content')
   currentDiv.addEventListener('mouseleave', (e) => {
     browser.management.setEnabled(items.currentId, true)
@@ -28,11 +27,10 @@ browser.storage.local.get().then((items) => {
     currentDiv.removeChild(currentDiv.firstChild)
   }
 
-  for (const theme of items.userThemes) {
-    currentDiv.appendChild(buildMenuItem(theme))
-  }
-
-  if (items.userThemes.length !== 0) {
+  if (typeof items.userThemes !== 'undefined' && items.userThemes.length > 0) {
+    for (const theme of items.userThemes) {
+      currentDiv.appendChild(buildMenuItem(theme))
+    }
     currentDiv.appendChild(document.createElement('hr'))
   }
 

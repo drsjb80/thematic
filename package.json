@@ -4,11 +4,11 @@
   "description": "Easily switch between themes in Firefox and Thunderbird. This extension allows you to switch between themes via keyboard combinations or every N minutes. It also allows one to specify switching to a random next theme. Autoswitching and having Thematic on the tools menu is not supported in Thunderbird.",
   "main": "jest.config.js",
   "dependencies": {
+    "eslint": "^7.32.0",
     "jest": "^27.0.6",
-    "web-ext": "^6.2.0"
+    "web-ext": "^6.3.0"
   },
   "devDependencies": {
-    "eslint": "^7.21.0",
     "eslint-config-standard": "^16.0.2",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-node": "^11.1.0",

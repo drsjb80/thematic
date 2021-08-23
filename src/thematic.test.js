@@ -3,9 +3,7 @@
 
 let logMessages = []
 if (true) {
-  console = {
-    log: function (f) { logMessages.push(f) }
-  }
+  console.log = function (f) { logMessages.push(f) }
 }
 
 let menus = []
@@ -20,6 +18,20 @@ let enabled = []
 
 const clearCalledWith = []
 const createCalledWith = []
+
+function getMem(key, memory) {
+  // console.error(key)
+  // console.error(memory)
+  if (typeof key === 'undefined') {
+    return Promise.resolve(memory)
+  }
+
+  if (typeof memory[key] === 'undefined') {
+    return Promise.resolve({})
+  }
+
+  return Promise.resolve(memory[key])
+}
 
 // can't be let, const, or var
 browser = {
@@ -40,13 +52,8 @@ browser = {
   },
   storage: {
     sync: {
-      // i know the follwing isn't DRY, haven't figured out how to fix it yet.
       get: function (f) {
-        if (typeof syncs[f] === 'undefined') {
-          return Promise.resolve({})
-        }
-
-        return Promise.resolve(syncs)
+        return getMem(f, syncs)
       },
       set: function (f) {
         syncs = { ...syncs, ...f }
@@ -54,17 +61,8 @@ browser = {
       }
     },
     local: {
-      // i know the follwing isn't DRY, haven't figured out how to fix it yet.
       get: function (f) {
-        if (typeof f === 'undefined') {
-          return Promise.resolve(locals)
-        }
-
-        if (typeof locals[f] === 'undefined') {
-          return Promise.resolve({})
-        }
-
-        return Promise.resolve(locals[f])
+        return getMem(f, locals)
       },
       set: function (f) {
         locals = { ...locals, ...f }
@@ -101,6 +99,7 @@ browser = {
       return Promise.resolve(builtins)
     },
     setEnabled: function (variable, value) {
+      // console.error([variable, value])
       enabled.push([variable, value])
     },
     onInstalled: { addListener: function (f) { return undefined } },
@@ -321,25 +320,39 @@ test('handleMessage', () => {
   expect(response).toStrictEqual({ response: 'Not OK' })
 })
 
-test('commands', async () => {
+test('bad command', async () => {
+  logMessages = []
   await thematic.commands('bad command')
   expect(logMessages.pop()).toBe('bad command not recognized')
+  expect(logMessages.length).toBe(0)
+})
 
+test('rotate to next command', async () => {
   thematic.rotate = jest.fn()
   await thematic.commands('Rotate to next theme')
   expect(thematic.rotate).toHaveBeenCalled()
   expect(thematic.rotate.mock.calls.length).toBe(1)
+})
 
+test('switch to default command with no locals', async () => {
   locals = []
+  logMessages = []
   await thematic.commands('Switch to default theme')
   expect(logMessages.pop()).toBe("Cannot read property 'id' of undefined")
+  expect(logMessages.length).toBe(0)
+})
 
+test('switch to default command with no defaultTheme', async () => {
   locals = {
     defaultTheme: {}
   }
+  logMessages = []
   await thematic.commands('Switch to default theme')
   expect(logMessages.pop()).toBe("Cannot read property 'id' of undefined")
+  expect(logMessages.length).toBe(0)
+})
 
+test('switch to default command good', async () => {
   locals = {
     defaultTheme: {
       defaultTheme: {
@@ -350,6 +363,7 @@ test('commands', async () => {
   enabled = []
   thematic.stopRotation = jest.fn()
   await thematic.commands('Switch to default theme')
+  expect(logMessages.length).toBe(0)
   expect(enabled).toStrictEqual([['foo', true]])
   expect(thematic.stopRotation).toHaveBeenCalled()
   expect(thematic.stopRotation.mock.calls.length).toBe(1)
