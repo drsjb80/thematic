@@ -3,11 +3,13 @@
 
 'use strict'
 
-if (typeof process !== 'undefined') {
-  module.exports = { isDefaultTheme, chooseNext, getCurrentId, getDefaultTheme,
-    buildToolsMenuItem, buildThemes, stopRotation, startRotation, rotate,
-    handleMessage, commands
-  }
+if (typeof process === 'undefined') {
+  var module = {}
+}
+
+module.exports = { isDefaultTheme, chooseNext, getCurrentId, getDefaultTheme,
+  buildToolsMenuItem, buildThemes, stopRotation, startRotation, rotate,
+  handleMessage, commands
 }
 
 function getDefaultTheme (allThemes) {
@@ -175,26 +177,40 @@ function handleMessage (request, sender, sendResponse) {
 
 browser.runtime.onMessage.addListener(handleMessage)
 
-function commands (command) {
+// allow Jest's mocking to occur
+// https://stackoverflow.com/questions/25649097/nodejs-override-a-function-in-a-module
+function jestTest(fn, testfn) {
+  if (typeof process === 'undefined') {
+    fn()
+  } else {
+    testfn()
+  }
+}
+
+async function jestTestAwait(fn, testfn) {
+  if (typeof process === 'undefined') {
+    await fn()
+  } else {
+    await testfn()
+  }
+}
+
+async function commands (command) {
   console.log(command)
   switch (command) {
     case 'Switch to default theme':
-      browser.storage.local.get('defaultTheme').then((c) => {
+      try {
+        const c = await browser.storage.local.get('defaultTheme')
         const defaultTheme = c.defaultTheme
-        browser.storage.local.set({ currentId: defaultTheme.id }).then(() => {
-          browser.management.setEnabled(defaultTheme.id, true)
-          stopRotation().catch((err) => { console.log(err) })
-        })
-      })
+        await browser.storage.local.set({ currentId: defaultTheme.id })
+        browser.management.setEnabled(defaultTheme.id, true)
+        jestTestAwait(stopRotation, module.exports.stopRotation)
+      } catch (error) {
+        console.log(error.message)
+      }
       break
     case 'Rotate to next theme':
-      // https://stackoverflow.com/questions/25649097/nodejs-override-a-function-in-a-module
-      // allow Jest's mocking to occur
-      if (typeof process !== 'undefined') {
-        module.exports.rotate()
-      } else {
-        rotate()
-      }
+      jestTest(rotate, module.exports.rotate)
       break
     case 'Toggle autoswitching':
       browser.storage.sync.get('auto').then((pref) => {
@@ -218,7 +234,11 @@ function commands (command) {
   }
 }
 
-browser.commands.onCommand.addListener(commands)
+async function commandsHelper(command) {
+  await commands(command)
+}
+
+browser.commands.onCommand.addListener(commandsHelper)
 
 function buildToolsMenuItem (theme) {
   browser.menus.create({
