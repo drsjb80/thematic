@@ -1,16 +1,16 @@
 // vim: ts=2 sw=2 expandtab
-/* global test, expect */
+/* global test, expect, browser, jest */
 
 let logMessages = []
 if (true) {
   console = {
-    log: function(f) { logMessages.push(f) }
+    log: function (f) { logMessages.push(f) }
   }
 }
 
 let menus = []
 let locals = {
-  userThemes: [ { type: 'theme', id: "usertheme@usertheme.org", name: "user", description: "A user theme." },
+  userThemes: [{ type: 'theme', id: 'usertheme@usertheme.org', name: 'user', description: 'A user theme.' }
   ]
 }
 let syncs = {
@@ -18,8 +18,8 @@ let syncs = {
 }
 let enabled = []
 
-let clearCalledWith = []
-let createCalledWith = []
+const clearCalledWith = []
+const createCalledWith = []
 
 // can't be let, const, or var
 browser = {
@@ -27,7 +27,7 @@ browser = {
     clear: function (f) {
       clearCalledWith.push(f)
     },
-    create: function(f, t) {
+    create: function (f, t) {
       createCalledWith.push([f, t])
     },
     onAlarm: {
@@ -36,7 +36,7 @@ browser = {
         this.onAlarmAddListenerCalledWith.push(f)
         return undefined
       }
-    },
+    }
   },
   storage: {
     sync: {
@@ -49,9 +49,9 @@ browser = {
         return Promise.resolve(syncs)
       },
       set: function (f) {
-        syncs = {...syncs, ...f}
+        syncs = { ...syncs, ...f }
         return Promise.resolve()
-      },
+      }
     },
     local: {
       // i know the follwing isn't DRY, haven't figured out how to fix it yet.
@@ -60,57 +60,56 @@ browser = {
           return Promise.resolve(locals)
         }
 
-        if (typeof locals.f === 'undefined') {
+        if (typeof locals[f] === 'undefined') {
           return Promise.resolve({})
         }
 
-        return Promise.resolve(locals.f)
+        return Promise.resolve(locals[f])
       },
       set: function (f) {
-        locals = {...locals, ...f}
+        locals = { ...locals, ...f }
         return Promise.resolve()
-      },
-    },
+      }
+    }
   },
   runtime: {
     onMessage: {
       addListener: function (f) { return undefined }
     },
     getBrowserInfo: function () {
-      return Promise.resolve({name: 'Firefox'})
-    },
+      return Promise.resolve({ name: 'Firefox' })
+    }
   },
   commands: {
     onCommand: {
       addListener: function (f) { return undefined }
-    },
+    }
   },
   management: {
     getAll: function (f) {
       const builtins = [
-        { type: 'theme', id: "default-theme@mozilla.org", name: "Default", description: "A theme with the operating system color scheme." },
-        { type: 'theme', id: "firefox-compact-dark@mozilla.org", name: "Dark", description: "A theme with a dark color scheme." },
-        { type: 'theme', id: "firefox-compact-light@mozilla.org", name: "Light", description: "A theme with a light color scheme." },
-        { type: 'theme', id: "firefox-alpenglow@mozilla.org", name: "Firefox Alpenglow", description: "Use a colorful appearance for buttons, menus, and windows." },
-        { type: 'extension', id: "drsjb80@gmail.com", name: "Thematic", description: "Quickly switch between your themes or back to the default." },
-        { type: 'extension', id: "yahoo@search.mozilla.org", name: "Yahoo!", description: "Yahoo" },
-        { type: 'extension', id: "startpage@search.mozilla.org", name: "Startpage", description: "Startpage" },
-        { type: 'extension', id: "duckduckgo@search.mozilla.org", name: "DuckDuckGo", description: "Search DuckDuckGo" },
-        { type: 'extension', id: "wikipedia@search.mozilla.org", name: "Wikipedia (en)", description: "Wikipedia, the Free Encyclopedia" },
+        { type: 'theme', id: 'default-theme@mozilla.org', name: 'Default', description: 'A theme with the operating system color scheme.' },
+        { type: 'theme', id: 'firefox-compact-dark@mozilla.org', name: 'Dark', description: 'A theme with a dark color scheme.' },
+        { type: 'theme', id: 'firefox-compact-light@mozilla.org', name: 'Light', description: 'A theme with a light color scheme.' },
+        { type: 'theme', id: 'firefox-alpenglow@mozilla.org', name: 'Firefox Alpenglow', description: 'Use a colorful appearance for buttons, menus, and windows.' },
+        { type: 'extension', id: 'drsjb80@gmail.com', name: 'Thematic', description: 'Quickly switch between your themes or back to the default.' },
+        { type: 'extension', id: 'yahoo@search.mozilla.org', name: 'Yahoo!', description: 'Yahoo' },
+        { type: 'extension', id: 'startpage@search.mozilla.org', name: 'Startpage', description: 'Startpage' },
+        { type: 'extension', id: 'duckduckgo@search.mozilla.org', name: 'DuckDuckGo', description: 'Search DuckDuckGo' },
+        { type: 'extension', id: 'wikipedia@search.mozilla.org', name: 'Wikipedia (en)', description: 'Wikipedia, the Free Encyclopedia' }
       ]
       return Promise.resolve(builtins)
     },
     setEnabled: function (variable, value) {
       enabled.push([variable, value])
-      return
     },
     onInstalled: { addListener: function (f) { return undefined } },
-    onUninstalled: { addListener: function (f) { return undefined } },
+    onUninstalled: { addListener: function (f) { return undefined } }
   },
   menus: {
     create: function (item) { menus.push(item) },
     removeAll: function (f) { menus = []; return Promise.resolve() },
-    onClicked: { addListener: function (f) { return undefined } },
+    onClicked: { addListener: function (f) { return undefined } }
   }
 }
 
@@ -236,26 +235,26 @@ test('buildThemes', () => {
   expect(locals).toStrictEqual(expected)
 })
 
-test('startRotation', () => {
-  syncs['auto'] = false
-  syncs['minutes'] = 15
-  thematic.startRotation().then(() => {
-    expect(syncs['auto']).toBe(true)
-    expect(createCalledWith.length).toBe(1)
-    expect(createCalledWith.pop()[0]).toBe('rotate')
-  })
+test('startRotation', async () => {
+  syncs.auto = false
+  syncs.minutes = 15
+  await thematic.startRotation()
+  expect(syncs.auto).toBe(true)
+  expect(createCalledWith.length).toBe(1)
+  expect(createCalledWith.pop()[0]).toBe('rotate')
 })
 
-test('stopRotation', () => {
-  thematic.stopRotation().then(() => {
-    expect(syncs['auto']).toBe(false)
-    expect(clearCalledWith.length).toBe(1)
-    expect(clearCalledWith.pop()).toBe('rotate')
-  })
+test('stopRotation', async () => {
+  await thematic.stopRotation()
+  expect(syncs.auto).toBe(false)
+  expect(clearCalledWith.length).toBe(1)
+  expect(clearCalledWith.pop()).toBe('rotate')
 })
 
 test('rotate', async () => {
-  locals = {userThemes: []}
+  logMessages = []
+
+  locals = { userThemes: [] }
   await thematic.rotate()
   expect(logMessages.pop()).toBe('No user themes found!')
 
@@ -263,65 +262,95 @@ test('rotate', async () => {
     userThemes: [
       {
         type: 'theme',
-        id: "usertheme@usertheme.org",
-        name: "user", description: "A user theme."
-      },
-    ],
+        id: 'usertheme@usertheme.org',
+        name: 'user',
+        description: 'A user theme.'
+      }
+    ]
   }
   await thematic.rotate()
   expect(logMessages.pop()).toBe('No current theme Id found!')
+  expect(logMessages.length).toBe(0)
 
   locals = {
     userThemes: [
       {
         type: 'theme',
-        id: "usertheme@usertheme.org",
-        name: "user", description: "A user theme."
-      },
+        id: 'usertheme@usertheme.org',
+        name: 'user',
+        description: 'A user theme.'
+      }
     ],
-    currentId: 'Missing',
+    currentId: 'Missing'
   }
   enabled = []
   await thematic.rotate()
   expect(logMessages.pop()).toBe('usertheme@usertheme.org')
   expect(logMessages.pop()).toBe('User theme index not found')
+  expect(logMessages.length).toBe(0)
   expect(locals.currentId).toBe('usertheme@usertheme.org')
-  expect(enabled).toStrictEqual([["usertheme@usertheme.org", true]])
+  expect(enabled).toStrictEqual([['usertheme@usertheme.org', true]])
 
   locals = {
     userThemes: [
       {
         type: 'theme',
-        id: "usertheme@usertheme.org",
-        name: "user", description: "A user theme."
-      },
+        id: 'usertheme@usertheme.org',
+        name: 'user',
+        description: 'A user theme.'
+      }
     ],
-    currentId: 'usertheme@usertheme.org',
+    currentId: 'usertheme@usertheme.org'
   }
   enabled = []
   await thematic.rotate()
   expect(logMessages.pop()).toBe('usertheme@usertheme.org')
-  expect(enabled).toStrictEqual([["usertheme@usertheme.org", true]])
+  expect(logMessages.length).toBe(0)
+  expect(enabled).toStrictEqual([['usertheme@usertheme.org', true]])
 })
 
 let response = ''
-function receiveResponse(m) { response = m }
+function receiveResponse (m) { response = m }
 
 test('handleMessage', () => {
-  thematic.handleMessage({message: 'Start rotation'}, {}, receiveResponse)
-  expect(response).toStrictEqual({"response": 'OK'})
-  thematic.handleMessage({message: 'Stop rotation'}, {}, receiveResponse)
-  expect(response).toStrictEqual({"response": 'OK'})
-  thematic.handleMessage({message: 'Bad message'}, {}, receiveResponse)
-  expect(response).toStrictEqual({"response": 'Not OK'})
+  thematic.handleMessage({ message: 'Start rotation' }, {}, receiveResponse)
+  expect(response).toStrictEqual({ response: 'OK' })
+  thematic.handleMessage({ message: 'Stop rotation' }, {}, receiveResponse)
+  expect(response).toStrictEqual({ response: 'OK' })
+  thematic.handleMessage({ message: 'Bad message' }, {}, receiveResponse)
+  expect(response).toStrictEqual({ response: 'Not OK' })
 })
 
-test('commands', () => {
-  thematic.commands('bad command')
+test('commands', async () => {
+  await thematic.commands('bad command')
   expect(logMessages.pop()).toBe('bad command not recognized')
 
   thematic.rotate = jest.fn()
-  thematic.commands('Rotate to next theme')
+  await thematic.commands('Rotate to next theme')
   expect(thematic.rotate).toHaveBeenCalled()
   expect(thematic.rotate.mock.calls.length).toBe(1)
+
+  locals = []
+  await thematic.commands('Switch to default theme')
+  expect(logMessages.pop()).toBe("Cannot read property 'id' of undefined")
+
+  locals = {
+    defaultTheme: {}
+  }
+  await thematic.commands('Switch to default theme')
+  expect(logMessages.pop()).toBe("Cannot read property 'id' of undefined")
+
+  locals = {
+    defaultTheme: {
+      defaultTheme: {
+        id: 'foo'
+      }
+    }
+  }
+  enabled = []
+  thematic.stopRotation = jest.fn()
+  await thematic.commands('Switch to default theme')
+  expect(enabled).toStrictEqual([['foo', true]])
+  expect(thematic.stopRotation).toHaveBeenCalled()
+  expect(thematic.stopRotation.mock.calls.length).toBe(1)
 })
