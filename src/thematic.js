@@ -37,7 +37,7 @@ function getDefaultTheme (allThemes) {
   // grab the first
   for (const theme of allThemes) {
     if (isDefaultTheme(theme)) {
-    console.log(theme)
+      console.log(theme)
       return theme
     }
   }
@@ -57,7 +57,6 @@ function isDefaultTheme (theme) {
     '{972ce4c6-7e08-4474-a285-3208198ce6fd}'
   ].includes(theme.id)
 }
-
 
 function getCurrentId (c, userThemes, defaultTheme) {
   if (Object.keys(c).length !== 0) {
@@ -113,7 +112,6 @@ async function asyncHelper(fn) {
 
 asyncHelper(buildThemes)
 */
-
 
 async function chooseNext (currentIndex, items) {
   const pref = await browser.storage.sync.get('random')
@@ -238,20 +236,18 @@ async function commands (command) {
       jestTest(rotate, module.exports.rotate)
       break
     case 'Toggle autoswitching':
-      browser.storage.sync.get('auto').then((pref) => {
-        if (pref.auto) {
-          stopRotation().catch((err) => { console.log(err) })
-          browser.storage.sync.set({ auto: false }).catch((err) => {
-            console.log(err)
-          })
+      try {
+        const c = await browser.storage.sync.get('auto')
+        const auto = c.auto
+        if (auto) {
+          jestTestAwait(stopRotation, module.exports.stopRotation)
         } else {
-          startRotation().catch((err) => { console.log(err) })
-          rotate()
-          browser.storage.sync.set({ auto: true }).catch((err) => {
-            console.log(err)
-          })
+          jestTestAwait(startRotation, module.exports.startRotation)
         }
-      }).catch((err) => { console.log(err) })
+        await browser.storage.sync.set({ auto: !auto })
+      } catch (error) {
+        console.log(error.message)
+      }
       break
     default:
       console.log(`${command} not recognized`)
@@ -314,5 +310,3 @@ browser.menus.onClicked.addListener((info) => {
     browser.management.setEnabled(currentId, true)
   }).catch((err) => { console.log(err) })
 })
-
-console.log("I'm here")
