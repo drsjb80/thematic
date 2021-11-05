@@ -22,18 +22,42 @@ module.exports = {
 }
 
 function getDefaultTheme (allThemes) {
-  const themes = allThemes.filter(info => info.name === 'Default')
+  let themes = allThemes.filter(info => info.name === 'Default')
   if (themes.length > 0) {
+    console.log(themes[0])
     return themes[0]
   }
 
+  themes = allThemes.filter(info => info.id === 'default-theme@mozilla.org')
+  if (themes.length > 0) {
+    console.log(themes[0])
+    return themes[0]
+  }
+
+  // grab the first
   for (const theme of allThemes) {
     if (isDefaultTheme(theme)) {
+    console.log(theme)
       return theme
     }
   }
   console.log('No default theme found!')
 }
+
+function isDefaultTheme (theme) {
+  return [
+    'firefox-compact-dark@mozilla.org@personas.mozilla.org',
+    'firefox-compact-light@mozilla.org@personas.mozilla.org',
+    'firefox-compact-dark@mozilla.org',
+    'firefox-compact-light@mozilla.org',
+    'default-theme@mozilla.org',
+    'firefox-alpenglow@mozilla.org',
+    'thunderbird-compact-dark@mozilla.org',
+    'thunderbird-compact-light@mozilla.org',
+    '{972ce4c6-7e08-4474-a285-3208198ce6fd}'
+  ].includes(theme.id)
+}
+
 
 function getCurrentId (c, userThemes, defaultTheme) {
   if (Object.keys(c).length !== 0) {
@@ -52,11 +76,12 @@ function getCurrentId (c, userThemes, defaultTheme) {
 async function buildThemes () {
   const allExtensions = await browser.management.getAll()
   const allThemes = allExtensions.filter(info => info.type === 'theme')
+  // console.log(allThemes)
 
   const c = await browser.storage.local.get('currentId')
   const defaultTheme = getDefaultTheme(allThemes)
-  const defaultThemes = allThemes.filter(theme => isDefaultTheme(theme))
-  const userThemes = allThemes.filter(theme => !isDefaultTheme(theme))
+  const defaultThemes = allThemes.filter(theme => isMozillaTheme(theme))
+  const userThemes = allThemes.filter(theme => !isMozillaTheme(theme))
   const currentId = getCurrentId(c, userThemes, defaultTheme)
 
   const themes = {
@@ -67,6 +92,10 @@ async function buildThemes () {
   }
   await browser.storage.local.set(themes)
   buildToolsMenu(themes)
+}
+
+function isMozillaTheme (theme) {
+  return theme.id.endsWith('mozilla.org')
 }
 
 // https://stackoverflow.com/questions/49432579/await-is-only-valid-in-async-function
@@ -85,19 +114,6 @@ async function asyncHelper(fn) {
 asyncHelper(buildThemes)
 */
 
-function isDefaultTheme (theme) {
-  return [
-    'firefox-compact-dark@mozilla.org@personas.mozilla.org',
-    'firefox-compact-light@mozilla.org@personas.mozilla.org',
-    'firefox-compact-dark@mozilla.org',
-    'firefox-compact-light@mozilla.org',
-    'default-theme@mozilla.org',
-    'firefox-alpenglow@mozilla.org',
-    'thunderbird-compact-dark@mozilla.org',
-    'thunderbird-compact-light@mozilla.org',
-    '{972ce4c6-7e08-4474-a285-3208198ce6fd}'
-  ].includes(theme.id)
-}
 
 async function chooseNext (currentIndex, items) {
   const pref = await browser.storage.sync.get('random')
@@ -298,3 +314,5 @@ browser.menus.onClicked.addListener((info) => {
     browser.management.setEnabled(currentId, true)
   }).catch((err) => { console.log(err) })
 })
+
+console.log("I'm here")

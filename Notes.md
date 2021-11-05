@@ -1,5 +1,7 @@
 shift-command-J
 
+Go to about:config, change xpinstall.signatures.required to false.
+
 about:devtools-toolbox?id=drsjb80%40gmail.com&type=extension
 
 ### General extension development
