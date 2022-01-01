@@ -46,8 +46,6 @@ function getDefaultTheme (allThemes) {
 
 function isDefaultTheme (theme) {
   return [
-    'firefox-compact-dark@mozilla.org@personas.mozilla.org',
-    'firefox-compact-light@mozilla.org@personas.mozilla.org',
     'firefox-compact-dark@mozilla.org',
     'firefox-compact-light@mozilla.org',
     'default-theme@mozilla.org',
