@@ -1,0 +1,21 @@
+Empty
+    - Drop-down shows defaults
+    - Hovering previews
+    - Selecting selects
+    - S-A-D reverts to default
+Add one theme
+    - Added to menu
+    - Hovering previews
+    - Selecting selects
+    - S-A-D reverts to default
+Add another theme
+    - Added to menu
+    - Hovering previews
+    - Selecting selects
+    - S-A-D reverts to default
+    - S-A-R rotates between two
+Preferences
+    - Set auto rotate to 1 minute and save
+    - Does actually rotate
+    - S-A-A toggles rotating
+        - Reload preferences
