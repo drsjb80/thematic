@@ -18,6 +18,7 @@ First, find the theme you want and right-click on the Install Theme. Choose
 Copy Link and use another program to download the file locally. Curl, wget,
 or even another browser will do the trick.
 
+<img src="install2.png">
 ![Right click](install2.png)
 
 
