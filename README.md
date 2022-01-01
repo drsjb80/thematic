@@ -19,13 +19,12 @@ Copy Link and use another program to download the file locally. Curl, wget,
 or even another browser will do the trick.
 
 <img src="install2.png">
-![Right click](install2.png)
 
 
 In Thunderbird, go to Tools -> Extensions and Themes. Click the settings
 icon and choose Install Add-on From File...
 
-![Install](install1.png)
+<img src="install1.png">
 
 Click on the .xpi you downloaded and you should be good to go. It appears
 that Thunderbird currently doesn't notify Thematic of the new theme, so a
