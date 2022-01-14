@@ -13,13 +13,26 @@ Thunderbird.
 
 This is a re-implementation of personaswitcher that was developed for Firefox 4.
 
-For Thunderbird, you can use any of Firefox's themes, with a little effort.
-First, find the theme you want and right-click on the Install Theme. Choose
-Copy Link and use another program to download the file locally. Curl, wget,
-or even another browser will do the trick.
+For Thunderbird, there are at least two way to use Firefox's themes.
+
+## First way
+Install https://addons.thunderbird.net/en-us/thunderbird/addon/browseintab/ in
+Thunderbird and then surf to the Firefix theme URL you like. It will say
+"Download Firefox" but you don't need to do that. Instead, click on
+"Download file". Thunderbird will automagically recognize the file as a
+theme and install it for you.
+
+<img src="install3.png">
+
+Really, it would be nice the Thunderbird to know to look for Firefox themes
+automatically. Maybe I'll get around to that some day.
+
+## Second way
+Another approach is to find the FireFox theme you want and right-click
+on the Install Theme. Choose Copy Link and use another program to download
+the file locally. Curl, wget, or even another browser will do the trick.
 
 <img src="install2.png">
-
 
 In Thunderbird, go to Tools -> Extensions and Themes. Click the settings
 icon and choose Install Add-on From File...
