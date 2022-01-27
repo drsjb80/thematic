@@ -9,7 +9,7 @@
         "message": "Thematic"
     },
     "minuteslabel": {
-        "message": "minutes, 1 - 999."
+        "message": "minutes, 1 - 999. Does not work for Thunderbird."
     },
     "autolabel": {
         "message": "Switch every"
