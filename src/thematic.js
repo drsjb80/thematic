@@ -150,7 +150,7 @@ async function rotate () {
   console.log(currentId)
 
   await browser.storage.local.set({ currentId: currentId })
-  browser.management.setEnabled(currentId, true)
+  await browser.management.setEnabled(currentId, true)
 }
 
 browser.alarms.onAlarm.addListener(rotate)
