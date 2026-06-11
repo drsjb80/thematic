@@ -470,3 +470,69 @@ test('toggle autoswitching command when auto is false', async () => {
   expect(logMessages.length).toBe(0)
   expect(thematic.startRotation).toHaveBeenCalled()
 })
+
+test('rotate when no user themes does nothing', async () => {
+  locals = {
+    userThemes: []
+  }
+  enabled = []
+  await thematic.rotate()
+  expect(enabled.length).toBe(0)
+})
+
+test('handleMessage with Start rotation', () => {
+  let response = {}
+  const sendResponse = (r) => { response = r }
+  thematic.handleMessage({ message: 'Start rotation' }, {}, sendResponse)
+  expect(response).toStrictEqual({ response: 'OK' })
+})
+
+test('handleMessage with Stop rotation', () => {
+  let response = {}
+  const sendResponse = (r) => { response = r }
+  thematic.handleMessage({ message: 'Stop rotation' }, {}, sendResponse)
+  expect(response).toStrictEqual({ response: 'OK' })
+})
+
+test('handleMessage with unknown message', () => {
+  let response = {}
+  const sendResponse = (r) => { response = r }
+  thematic.handleMessage({ message: 'Unknown' }, {}, sendResponse)
+  expect(response).toStrictEqual({ response: 'Not OK' })
+})
+
+test('chooseNext cycles through all themes', async () => {
+  const items = { userThemes: [1, 2, 3] }
+  syncs = { random: false }
+  expect(await thematic.chooseNext(0, items)).toBe(1)
+  expect(await thematic.chooseNext(1, items)).toBe(2)
+  expect(await thematic.chooseNext(2, items)).toBe(0)
+})
+
+test('chooseNext with single theme wraps around', async () => {
+  const items = { userThemes: [{ id: 'only-theme' }] }
+  syncs = { random: false }
+  expect(await thematic.chooseNext(0, items)).toBe(0)
+})
+
+test('switch to default command sets currentId and calls stopRotation', async () => {
+  locals = {
+    defaultTheme: { id: 'default-theme@mozilla.org' }
+  }
+  enabled = []
+  thematic.stopRotation = jest.fn()
+  await thematic.commands('Switch to default theme')
+  expect(locals.currentId).toBe('default-theme@mozilla.org')
+  expect(thematic.stopRotation).toHaveBeenCalled()
+})
+
+test('getDefaultTheme returns undefined when no default found', () => {
+  const themes = [
+    { id: 'custom1@example.com', name: 'Custom 1' },
+    { id: 'custom2@example.com', name: 'Custom 2' }
+  ]
+  logMessages = []
+  const result = thematic.getDefaultTheme(themes)
+  expect(result).toBeUndefined()
+  expect(logMessages[logMessages.length - 1]).toBe('No default theme found!')
+})
