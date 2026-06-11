@@ -3,6 +3,12 @@
 
 'use strict'
 
+/**
+ * Finds the default theme from a list of all themes.
+ * Tries by name first, then by known Mozilla IDs, then returns the first default theme.
+ * @param {Array} allThemes - Array of theme objects with id and name properties
+ * @returns {Object} The default theme object, or undefined if not found
+ */
 function getDefaultTheme (allThemes) {
   let themes = allThemes.filter(info => info.name === 'Default')
   if (themes.length > 0) {
@@ -26,6 +32,11 @@ function getDefaultTheme (allThemes) {
   console.log('No default theme found!')
 }
 
+/**
+ * Checks if a theme is a built-in default theme (Mozilla or Thunderbird official).
+ * @param {Object} theme - Theme object with an id property
+ * @returns {boolean} True if the theme ID is in the list of default theme IDs
+ */
 function isDefaultTheme (theme) {
   return [
     'firefox-compact-dark@mozilla.org',
@@ -38,6 +49,14 @@ function isDefaultTheme (theme) {
   ].includes(theme.id)
 }
 
+/**
+ * Determines the current theme ID to use.
+ * Priority: stored currentId > first user theme > default theme
+ * @param {Object} c - Stored config with currentId property (empty object if not set)
+ * @param {Array} userThemes - Array of user-installed theme objects
+ * @param {Object} defaultTheme - The default theme object to fall back to
+ * @returns {string} Theme ID to use as current
+ */
 function getCurrentId (c, userThemes, defaultTheme) {
   if (Object.keys(c).length !== 0) {
     return c.currentId
@@ -52,6 +71,12 @@ function getCurrentId (c, userThemes, defaultTheme) {
   return defaultTheme.id
 }
 
+/**
+ * Fetches all installed themes, categorizes them, and stores the data.
+ * Separates Mozilla default themes from user-installed themes.
+ * Updates the tools menu and sets the current theme if not already set.
+ * @async
+ */
 async function buildThemes () {
   const allExtensions = await browser.management.getAll()
   const allThemes = allExtensions.filter(info => info.type === 'theme')
@@ -73,6 +98,11 @@ async function buildThemes () {
   buildToolsMenu(themes)
 }
 
+/**
+ * Checks if a theme is made by Mozilla (not a user-installed theme).
+ * @param {Object} theme - Theme object with an id property
+ * @returns {boolean} True if the theme ID ends with 'mozilla.org'
+ */
 function isMozillaTheme (theme) {
   return theme.id.endsWith('mozilla.org')
 }
@@ -93,6 +123,15 @@ async function asyncHelper(fn) {
 asyncHelper(buildThemes)
 */
 
+/**
+ * Chooses the next theme index to switch to.
+ * If random mode is enabled, picks a random theme (different from current).
+ * Otherwise cycles to the next theme in order.
+ * @async
+ * @param {number} currentIndex - Index of the currently active theme
+ * @param {Object} items - Object containing userThemes array
+ * @returns {Promise<number>} Index of the next theme to activate
+ */
 async function chooseNext (currentIndex, items) {
   const pref = await browser.storage.sync.get('random')
   if (pref.random) {
@@ -106,6 +145,12 @@ async function chooseNext (currentIndex, items) {
   return (currentIndex + 1) % items.userThemes.length
 }
 
+/**
+ * Rotates to the next theme, respecting the random setting.
+ * Disables the previous theme and enables the next one.
+ * Logs errors if no themes are available or current theme is missing.
+ * @async
+ */
 async function rotate () {
   const items = await browser.storage.local.get()
 
@@ -140,6 +185,11 @@ async function rotate () {
 
 browser.alarms.onAlarm.addListener(rotate)
 
+/**
+ * Starts the automatic theme rotation timer (Firefox only, not supported in Thunderbird).
+ * Creates an alarm that triggers the rotate function periodically.
+ * @async
+ */
 async function startRotation () {
   const info = await browser.runtime.getBrowserInfo()
   if (info.name !== 'Thunderbird') {
@@ -149,6 +199,11 @@ async function startRotation () {
   }
 }
 
+/**
+ * Stops the automatic theme rotation timer (Firefox only, not supported in Thunderbird).
+ * Clears any active alarm and updates the auto setting to false.
+ * @async
+ */
 async function stopRotation () {
   const info = await browser.runtime.getBrowserInfo()
   if (info.name !== 'Thunderbird') {
@@ -163,6 +218,13 @@ browser.storage.sync.get('auto').then((pref) => {
   }
 })
 
+/**
+ * Handles messages from the popup and options pages.
+ * Supports 'Start rotation' and 'Stop rotation' commands.
+ * @param {Object} request - Message object with a 'message' property
+ * @param {Object} sender - Info about the message sender
+ * @param {Function} sendResponse - Callback to send a response back to sender
+ */
 function handleMessage (request, sender, sendResponse) {
   console.log('Message from the popup or options script: ' + request.message)
   switch (request.message) {
@@ -201,6 +263,15 @@ async function jestTestAwait (fn, testfn) {
   }
 }
 
+/**
+ * Handles keyboard shortcut commands.
+ * Supported commands:
+ * - 'Switch to default theme': Switches to the default theme and stops auto-rotation
+ * - 'Rotate to next theme': Manually rotates to the next theme
+ * - 'Toggle autoswitching': Enables/disables automatic theme rotation
+ * @async
+ * @param {string} command - The command name to execute
+ */
 async function commands (command) {
   // console.log(command)
   switch (command) {
@@ -244,6 +315,10 @@ async function commandsHelper (command) {
 
 browser.commands.onCommand.addListener(commandsHelper)
 
+/**
+ * Creates a single menu item for a theme in the Firefox tools menu.
+ * @param {Object} theme - Theme object with id and name properties
+ */
 function buildToolsMenuItem (theme) {
   browser.menus.create({
     id: theme.id,
@@ -253,6 +328,13 @@ function buildToolsMenuItem (theme) {
   })
 }
 
+/**
+ * Builds the Firefox tools menu with theme options.
+ * Shows user themes first, then a separator, then default themes.
+ * Does nothing on Thunderbird (tools menu not supported).
+ * @async
+ * @param {Object} themes - Object with userThemes and defaultThemes arrays
+ */
 async function buildToolsMenu (themes) {
   const info = await browser.runtime.getBrowserInfo()
 
