@@ -1,25 +1,7 @@
-/* global browser */
+/* global browser, module */
 // vim: ts=2 sw=2 expandtab
 
 'use strict'
-
-if (typeof process === 'undefined') {
-  var module = {}
-}
-
-module.exports = {
-  isDefaultTheme,
-  chooseNext,
-  getCurrentId,
-  getDefaultTheme,
-  buildToolsMenuItem,
-  buildThemes,
-  stopRotation,
-  startRotation,
-  rotate,
-  handleMessage,
-  commands
-}
 
 function getDefaultTheme (allThemes) {
   let themes = allThemes.filter(info => info.name === 'Default')
@@ -311,3 +293,19 @@ browser.menus.onClicked.addListener((info) => {
     browser.management.setEnabled(currentId, true)
   }).catch((err) => { console.log(err) })
 })
+
+if (typeof module !== 'undefined') {
+  module.exports = {
+    isDefaultTheme,
+    chooseNext,
+    getCurrentId,
+    getDefaultTheme,
+    buildToolsMenuItem,
+    buildThemes,
+    stopRotation,
+    startRotation,
+    rotate,
+    handleMessage,
+    commands
+  }
+}

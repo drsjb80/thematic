@@ -5,8 +5,8 @@
   "main": "jest.config.js",
   "dependencies": {
     "eslint": "^7.32.0",
-    "jest": "^27.0.6",
-    "web-ext": "^6.8.0"
+    "jest": "^26.6.3",
+    "web-ext": "^10.3.0"
   },
   "devDependencies": {
     "eslint-config-standard": "^16.0.2",

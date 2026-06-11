@@ -1,16 +1,20 @@
 // vim: ts=2 sw=2 expandtab
+/* global browser */
 
 'use strict'
 
 function saveOptions (e) {
   console.log('saveOptions')
   e.preventDefault()
+  const autoEl = document.getElementById('auto')
+  const minutesEl = document.getElementById('minutes')
+  const randomEl = document.getElementById('random')
   browser.storage.sync.set({
-    auto: auto.checked,
-    minutes: parseInt(minutes.value),
-    random: random.checked
+    auto: autoEl.checked,
+    minutes: parseInt(minutesEl.value, 10),
+    random: randomEl.checked
   }).then(() => {
-    const message = auto.checked ? 'Start rotation' : 'Stop rotation'
+    const message = autoEl.checked ? 'Start rotation' : 'Stop rotation'
     browser.runtime.sendMessage({ message: message })
       .then(console.log, console.log)
   }).catch(console.log)
@@ -30,7 +34,7 @@ function loadOptions () {
 
 // https://developer.mozilla.org/en-US/docs/Displaying_web_content_in_an_extension_without_security_issues
 function localizeHtmlPage () {
-  for (let obj of document.getElementsByClassName('i18n')) {
+  for (const obj of document.getElementsByClassName('i18n')) {
     console.log('obj: ' + obj)
     obj.textContent = browser.i18n.getMessage(obj.id.toString())
   }
