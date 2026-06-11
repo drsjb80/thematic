@@ -297,10 +297,12 @@ browser.menus.onClicked.addListener((info) => {
 if (typeof module !== 'undefined') {
   module.exports = {
     isDefaultTheme,
+    isMozillaTheme,
     chooseNext,
     getCurrentId,
     getDefaultTheme,
     buildToolsMenuItem,
+    buildToolsMenu,
     buildThemes,
     stopRotation,
     startRotation,

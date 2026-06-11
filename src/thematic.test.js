@@ -30,7 +30,7 @@ function getMem(key, memory) {
     return Promise.resolve({})
   }
 
-  return Promise.resolve(memory[key])
+  return Promise.resolve({ [key]: memory[key] })
 }
 
 // can't be let, const, or var
@@ -345,9 +345,7 @@ test('switch to default command with no locals', async () => {
 })
 
 test('switch to default command with no defaultTheme', async () => {
-  locals = {
-    defaultTheme: {}
-  }
+  locals = {}
   logMessages = []
   await thematic.commands('Switch to default theme')
   expect(logMessages.pop()).toBe("Cannot read properties of undefined (reading 'id')")
@@ -357,9 +355,7 @@ test('switch to default command with no defaultTheme', async () => {
 test('switch to default command good', async () => {
   locals = {
     defaultTheme: {
-      defaultTheme: {
-        id: 'foo'
-      }
+      id: 'foo'
     }
   }
   enabled = []
@@ -369,4 +365,108 @@ test('switch to default command good', async () => {
   expect(enabled).toStrictEqual([['foo', true]])
   expect(thematic.stopRotation).toHaveBeenCalled()
   expect(thematic.stopRotation.mock.calls.length).toBe(1)
+})
+
+test('isMozillaTheme', () => {
+  expect(thematic.isMozillaTheme({ id: 'default-theme@mozilla.org' })).toBe(true)
+  expect(thematic.isMozillaTheme({ id: 'firefox-compact-dark@mozilla.org' })).toBe(true)
+  expect(thematic.isMozillaTheme({ id: 'thunderbird-compact-dark@mozilla.org' })).toBe(true)
+  expect(thematic.isMozillaTheme({ id: 'custom-theme@example.com' })).toBe(false)
+  expect(thematic.isMozillaTheme({ id: 'my-theme' })).toBe(false)
+})
+
+test('buildToolsMenu on Firefox', async () => {
+  const themes = {
+    userThemes: [
+      { id: 'user1@user.com', name: 'User Theme 1' }
+    ],
+    defaultThemes: [
+      { id: 'default-theme@mozilla.org', name: 'Default' }
+    ]
+  }
+  menus = []
+  await thematic.buildToolsMenu(themes)
+  expect(menus.length).toBe(3)
+  expect(menus[0]).toStrictEqual({ id: 'user1@user.com', type: 'normal', title: 'User Theme 1', contexts: ['tools_menu'] })
+  expect(menus[1]).toStrictEqual({ type: 'separator', contexts: ['tools_menu'] })
+  expect(menus[2]).toStrictEqual({ id: 'default-theme@mozilla.org', type: 'normal', title: 'Default', contexts: ['tools_menu'] })
+})
+
+test('buildToolsMenu on Firefox with no user themes', async () => {
+  const themes = {
+    userThemes: [],
+    defaultThemes: [
+      { id: 'default-theme@mozilla.org', name: 'Default' }
+    ]
+  }
+  menus = []
+  await thematic.buildToolsMenu(themes)
+  expect(menus.length).toBe(1)
+  expect(menus[0]).toStrictEqual({ id: 'default-theme@mozilla.org', type: 'normal', title: 'Default', contexts: ['tools_menu'] })
+})
+
+test('buildToolsMenu on Thunderbird', async () => {
+  browser.runtime.getBrowserInfo = function () {
+    return Promise.resolve({ name: 'Thunderbird' })
+  }
+  const themes = {
+    userThemes: [{ id: 'user1@user.com', name: 'User Theme 1' }],
+    defaultThemes: [{ id: 'default-theme@mozilla.org', name: 'Default' }]
+  }
+  menus = []
+  await thematic.buildToolsMenu(themes)
+  expect(menus.length).toBe(0)
+  browser.runtime.getBrowserInfo = function () {
+    return Promise.resolve({ name: 'Firefox' })
+  }
+})
+
+test('startRotation on Thunderbird', async () => {
+  browser.runtime.getBrowserInfo = function () {
+    return Promise.resolve({ name: 'Thunderbird' })
+  }
+  syncs = { auto: false }
+  createCalledWith.length = 0
+  await thematic.startRotation()
+  expect(syncs.auto).toBe(false)
+  expect(createCalledWith.length).toBe(0)
+  browser.runtime.getBrowserInfo = function () {
+    return Promise.resolve({ name: 'Firefox' })
+  }
+})
+
+test('stopRotation on Thunderbird', async () => {
+  browser.runtime.getBrowserInfo = function () {
+    return Promise.resolve({ name: 'Thunderbird' })
+  }
+  syncs = { auto: true }
+  clearCalledWith.length = 0
+  await thematic.stopRotation()
+  expect(syncs.auto).toBe(true)
+  expect(clearCalledWith.length).toBe(0)
+  browser.runtime.getBrowserInfo = function () {
+    return Promise.resolve({ name: 'Firefox' })
+  }
+})
+
+test('toggle autoswitching command when auto is true', async () => {
+  syncs = { auto: true, minutes: 30 }
+  logMessages = []
+  thematic.stopRotation = jest.fn()
+  thematic.stopRotation.mockResolvedValue(undefined)
+  await thematic.commands('Toggle autoswitching')
+  expect(syncs.auto).toBe(false)
+  expect(logMessages.length).toBe(0)
+  expect(thematic.stopRotation).toHaveBeenCalled()
+})
+
+test('toggle autoswitching command when auto is false', async () => {
+  syncs = { auto: false, minutes: 30 }
+  logMessages = []
+  thematic.startRotation = jest.fn()
+  thematic.startRotation.mockResolvedValue(undefined)
+  await thematic.commands('Toggle autoswitching')
+  expect(syncs.auto).toBe(true)
+  expect(logMessages.length).toBe(0)
+  expect(thematic.startRotation).toHaveBeenCalled()
 })
