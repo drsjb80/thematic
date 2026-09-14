@@ -2,7 +2,8 @@
     "browser_specific_settings": {
         "gecko": {
             "id": "drsjb80@gmail.com",
-            "strict_min_version": "60.0"
+            "strict_min_version": "60.0",
+            "data_collection_permissions": []
         }
     },
     "background": {
