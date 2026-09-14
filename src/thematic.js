@@ -5,7 +5,7 @@
 
 /**
  * Finds the default theme from a list of all themes.
- * Tries by name first, then by known Mozilla IDs, then returns the first default theme.
+ * Tries by name first, then by known Mozilla IDs, then returns the first built-in theme.
  * @param {Array} allThemes - Array of theme objects with id and name properties
  * @returns {Object} The default theme object, or undefined if not found
  */
@@ -22,9 +22,9 @@ function getDefaultTheme (allThemes) {
     return themes[0]
   }
 
-  // grab the first
+  // grab the first built-in theme
   for (const theme of allThemes) {
-    if (isDefaultTheme(theme)) {
+    if (isBuiltInTheme(theme)) {
       console.log(theme)
       return theme
     }
@@ -33,7 +33,37 @@ function getDefaultTheme (allThemes) {
 }
 
 /**
+ * Checks if a theme is a built-in theme (Mozilla or Thunderbird official).
+ * Uses multiple heuristics to catch both existing and newly-added built-in themes:
+ * 1. Theme ID ends with 'mozilla.org' (covers most Mozilla/Thunderbird built-ins)
+ * 2. Theme ID matches a known legacy built-in ID
+ * 3. Theme name matches a known built-in naming pattern (catches new system themes)
+ * @param {Object} theme - Theme object with id and name properties
+ * @returns {boolean} True if the theme is identified as built-in
+ */
+function isBuiltInTheme (theme) {
+  // Check ID suffix (most common for mozilla-owned themes)
+  if (theme.id.endsWith('mozilla.org')) {
+    return true
+  }
+
+  // Check legacy ID (built-in theme that doesn't end in mozilla.org)
+  if (theme.id === '{972ce4c6-7e08-4474-a285-3208198ce6fd}') {
+    return true
+  }
+
+  // Check theme name pattern for newly-added system themes
+  // Matches: "Default", "Light", "Dark", "Automatic", "System theme", etc.
+  if (theme.name && /^(default|light|dark|automatic|system theme)/i.test(theme.name)) {
+    return true
+  }
+
+  return false
+}
+
+/**
  * Checks if a theme is a built-in default theme (Mozilla or Thunderbird official).
+ * DEPRECATED: Use isBuiltInTheme() instead. Kept for backwards compatibility.
  * @param {Object} theme - Theme object with an id property
  * @returns {boolean} True if the theme ID is in the list of default theme IDs
  */
@@ -74,18 +104,22 @@ function getCurrentId (c, userThemes, defaultTheme) {
 /**
  * Fetches all installed themes, categorizes them, and stores the data.
  * Separates Mozilla default themes from user-installed themes.
+ * Filters out any themes with missing or blank names to prevent "blank theme" entries.
  * Updates the tools menu and sets the current theme if not already set.
  * @async
  */
 async function buildThemes () {
   const allExtensions = await browser.management.getAll()
-  const allThemes = allExtensions.filter(info => info.type === 'theme')
+  let allThemes = allExtensions.filter(info => info.type === 'theme')
   // console.log(allThemes)
+
+  // Filter out themes with missing or blank names to prevent blank entries in UI
+  allThemes = allThemes.filter(theme => theme.name && theme.name.trim())
 
   const c = await browser.storage.local.get('currentId')
   const defaultTheme = getDefaultTheme(allThemes)
-  const defaultThemes = allThemes.filter(theme => isMozillaTheme(theme))
-  const userThemes = allThemes.filter(theme => !isMozillaTheme(theme))
+  const defaultThemes = allThemes.filter(theme => isBuiltInTheme(theme))
+  const userThemes = allThemes.filter(theme => !isBuiltInTheme(theme))
   const currentId = getCurrentId(c, userThemes, defaultTheme)
 
   const themes = {
@@ -100,6 +134,7 @@ async function buildThemes () {
 
 /**
  * Checks if a theme is made by Mozilla (not a user-installed theme).
+ * DEPRECATED: Use isBuiltInTheme() instead.
  * @param {Object} theme - Theme object with an id property
  * @returns {boolean} True if the theme ID ends with 'mozilla.org'
  */
@@ -378,6 +413,7 @@ browser.menus.onClicked.addListener((info) => {
 
 if (typeof module !== 'undefined') {
   module.exports = {
+    isBuiltInTheme,
     isDefaultTheme,
     isMozillaTheme,
     chooseNext,

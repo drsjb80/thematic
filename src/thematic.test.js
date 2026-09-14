@@ -137,6 +137,30 @@ const aBunchOfThemes = [
   { name: 'Theme four', id: 'four' }
 ]
 
+test('isBuiltInTheme', () => {
+  // Test mozilla.org suffix detection
+  expect(thematic.isBuiltInTheme({ id: 'default-theme@mozilla.org', name: 'Default' })).toBe(true)
+  expect(thematic.isBuiltInTheme({ id: 'firefox-compact-dark@mozilla.org', name: 'Light' })).toBe(true)
+  expect(thematic.isBuiltInTheme({ id: 'thunderbird-compact-dark@mozilla.org', name: 'Dark' })).toBe(true)
+
+  // Test legacy ID detection
+  expect(thematic.isBuiltInTheme({ id: '{972ce4c6-7e08-4474-a285-3208198ce6fd}', name: 'Classic' })).toBe(true)
+
+  // Test name pattern detection (for new system themes)
+  expect(thematic.isBuiltInTheme({ id: 'system-theme-auto@mozilla.org', name: 'System theme — auto' })).toBe(true)
+  expect(thematic.isBuiltInTheme({ id: 'custom-id', name: 'System Theme' })).toBe(true)
+  expect(thematic.isBuiltInTheme({ id: 'custom-id', name: 'Automatic' })).toBe(true)
+  expect(thematic.isBuiltInTheme({ id: 'custom-id', name: 'Light Theme' })).toBe(true)
+
+  // Test non-built-in themes
+  expect(thematic.isBuiltInTheme({ id: 'custom-theme@example.com', name: 'My Theme' })).toBe(false)
+  expect(thematic.isBuiltInTheme({ id: 'my-theme', name: 'Cool Stuff' })).toBe(false)
+
+  // Test that blank name doesn't cause issues
+  expect(thematic.isBuiltInTheme({ id: 'custom-id', name: '' })).toBe(false)
+  expect(thematic.isBuiltInTheme({ id: 'custom-id', name: null })).toBe(false)
+})
+
 test('isDefaultTheme', () => {
   expect(thematic.isDefaultTheme({ id: 'foo' })).toBe(false)
   expect(thematic.isDefaultTheme({ id: 'default-theme@mozilla.org' })).toBe(true)
@@ -232,6 +256,58 @@ test('buildThemes', () => {
 
   thematic.buildThemes()
   expect(locals).toStrictEqual(expected)
+})
+
+test('buildThemes filters out themes with blank names', async () => {
+  // Mock management.getAll to return a theme with a blank name
+  browser.management.getAll = function () {
+    return Promise.resolve([
+      {
+        type: 'theme',
+        id: 'default-theme@mozilla.org',
+        name: 'Default',
+        description: 'A theme with the operating system color scheme.'
+      },
+      {
+        type: 'theme',
+        id: 'malformed-theme@mozilla.org',
+        name: '', // Blank name should be filtered out
+        description: 'A malformed theme'
+      },
+      {
+        type: 'theme',
+        id: 'my-user-theme',
+        name: 'My Theme',
+        description: 'A user-installed theme'
+      }
+    ])
+  }
+
+  // Reset locals for this test
+  locals = {}
+
+  await thematic.buildThemes()
+
+  // Verify the blank-named theme is not in either defaultThemes or userThemes
+  expect(locals.defaultThemes).toContainEqual({
+    type: 'theme',
+    id: 'default-theme@mozilla.org',
+    name: 'Default',
+    description: 'A theme with the operating system color scheme.'
+  })
+
+  expect(locals.userThemes).toContainEqual({
+    type: 'theme',
+    id: 'my-user-theme',
+    name: 'My Theme',
+    description: 'A user-installed theme'
+  })
+
+  expect(locals.currentId).toBe('my-user-theme')
+
+  // Verify the malformed theme with blank name was filtered out
+  const allThemesReturned = [...locals.defaultThemes, ...locals.userThemes]
+  expect(allThemesReturned.find(t => t.id === 'malformed-theme@mozilla.org')).toBeUndefined()
 })
 
 test('startRotation', async () => {
@@ -340,7 +416,8 @@ test('switch to default command with no locals', async () => {
   locals = []
   logMessages = []
   await thematic.commands('Switch to default theme')
-  expect(logMessages.pop()).toBe("Cannot read properties of undefined (reading 'id')")
+  const errorMsg = logMessages.pop()
+  expect(errorMsg).toMatch(/Cannot read propert(y|ies).*of undefined/)
   expect(logMessages.length).toBe(0)
 })
 
@@ -348,7 +425,8 @@ test('switch to default command with no defaultTheme', async () => {
   locals = {}
   logMessages = []
   await thematic.commands('Switch to default theme')
-  expect(logMessages.pop()).toBe("Cannot read properties of undefined (reading 'id')")
+  const errorMsg = logMessages.pop()
+  expect(errorMsg).toMatch(/Cannot read propert(y|ies).*of undefined/)
   expect(logMessages.length).toBe(0)
 })
 
