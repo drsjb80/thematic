@@ -265,6 +265,7 @@ function handleMessage (request, sender, sendResponse) {
   switch (request.message) {
     case 'Start rotation':
       startRotation().catch((err) => { console.log(err) })
+      rotate()
       sendResponse({ response: 'OK' })
       break
     case 'Stop rotation':
@@ -314,6 +315,7 @@ async function commands (command) {
           await stopRotation()
         } else {
           await startRotation()
+          rotate()
         }
         await browser.storage.sync.set({ auto: !auto })
       } catch (error) {
