@@ -281,7 +281,6 @@ function handleMessage (request, sender, sendResponse) {
 
 browser.runtime.onMessage.addListener(handleMessage)
 
-
 /**
  * Handles keyboard shortcut commands.
  * Supported commands:

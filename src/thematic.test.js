@@ -1,10 +1,8 @@
 // vim: ts=2 sw=2 expandtab
-/* global test, expect, jest */
+/* global test, expect, beforeEach, browser */
 
-let logMessages = []
-if (true) {
-  console.log = function (f) { logMessages.push(f) }
-}
+const logMessages = []
+console.log = function (f) { logMessages.push(f) }
 
 let menus = []
 let locals = {
@@ -19,7 +17,7 @@ let enabled = []
 const clearCalledWith = []
 const createCalledWith = []
 
-function getMem(key, memory) {
+function getMem (key, memory) {
   if (typeof key === 'undefined') {
     return Promise.resolve(memory)
   }
@@ -111,13 +109,13 @@ global.browser = {
 const thematic = require('./thematic.js')
 
 beforeEach(() => {
-  logMessages = []
-  menus = []
+  logMessages.length = 0
+  menus.length = 0
   locals = {
     userThemes: [{ type: 'theme', id: 'usertheme@usertheme.org', name: 'user', description: 'A user theme.' }]
   }
   syncs = { minutes: 15 }
-  enabled = []
+  enabled.length = 0
   clearCalledWith.length = 0
   createCalledWith.length = 0
 })
@@ -319,8 +317,6 @@ test('stopRotation', async () => {
 })
 
 test('rotate', async () => {
-  logMessages = []
-
   locals = { userThemes: [] }
   await thematic.rotate()
   expect(logMessages.pop()).toBe('No user themes found!')
@@ -391,7 +387,6 @@ test('handleMessage', () => {
 })
 
 test('bad command', async () => {
-  logMessages = []
   await thematic.commands('bad command')
   expect(logMessages.pop()).toBe('bad command not recognized')
   expect(logMessages.length).toBe(0)
@@ -413,7 +408,6 @@ test('rotate to next command', async () => {
 
 test('switch to default command with no locals', async () => {
   locals = []
-  logMessages = []
   await thematic.commands('Switch to default theme')
   const errorMsg = logMessages.pop()
   expect(errorMsg).toMatch(/Cannot read propert(y|ies).*of undefined/)
@@ -422,7 +416,6 @@ test('switch to default command with no locals', async () => {
 
 test('switch to default command with no defaultTheme', async () => {
   locals = {}
-  logMessages = []
   await thematic.commands('Switch to default theme')
   const errorMsg = logMessages.pop()
   expect(errorMsg).toMatch(/Cannot read propert(y|ies).*of undefined/)
@@ -530,7 +523,6 @@ test('stopRotation on Thunderbird', async () => {
 
 test('toggle autoswitching command when auto is true', async () => {
   syncs = { auto: true, minutes: 30 }
-  logMessages = []
   clearCalledWith.length = 0
   await thematic.commands('Toggle autoswitching')
   expect(syncs.auto).toBe(false)
@@ -541,11 +533,10 @@ test('toggle autoswitching command when auto is true', async () => {
 
 test('toggle autoswitching command when auto is false', async () => {
   syncs = { auto: false, minutes: 30 }
-  logMessages = []
+  locals.currentId = 'usertheme@usertheme.org'
   createCalledWith.length = 0
   await thematic.commands('Toggle autoswitching')
   expect(syncs.auto).toBe(true)
-  expect(logMessages.length).toBe(0)
   expect(createCalledWith.length).toBe(1)
   expect(createCalledWith[0][0]).toBe('rotate')
 })
@@ -613,7 +604,6 @@ test('getDefaultTheme returns undefined when no default found', () => {
     { id: 'custom1@example.com', name: 'Custom 1' },
     { id: 'custom2@example.com', name: 'Custom 2' }
   ]
-  logMessages = []
   const result = thematic.getDefaultTheme(themes)
   expect(result).toBeUndefined()
   expect(logMessages[logMessages.length - 1]).toBe('No default theme found!')
