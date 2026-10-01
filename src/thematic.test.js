@@ -1,5 +1,5 @@
 // vim: ts=2 sw=2 expandtab
-/* global test, expect, browser, jest */
+/* global test, expect, jest */
 
 let logMessages = []
 if (true) {
@@ -20,8 +20,6 @@ const clearCalledWith = []
 const createCalledWith = []
 
 function getMem(key, memory) {
-  // console.error(key)
-  // console.error(memory)
   if (typeof key === 'undefined') {
     return Promise.resolve(memory)
   }
@@ -33,8 +31,7 @@ function getMem(key, memory) {
   return Promise.resolve({ [key]: memory[key] })
 }
 
-// can't be let, const, or var
-browser = {
+global.browser = {
   alarms: {
     clear: function (f) {
       clearCalledWith.push(f)
@@ -99,7 +96,6 @@ browser = {
       return Promise.resolve(builtins)
     },
     setEnabled: function (variable, value) {
-      // console.error([variable, value])
       enabled.push([variable, value])
     },
     onInstalled: { addListener: function (f) { return undefined } },
@@ -112,23 +108,19 @@ browser = {
   }
 }
 
-/*
-browser.runtime.onMessage.addListener('foo')
-browser.alarms.clear('rotate')
-browser.alarms.onAlarm.addListener('foo')
-browser.commands.onCommand.addListener('foo')
-browser.management.onInstalled.addListener('foo')
-browser.management.onUninstalled.addListener('foo')
-browser.management.setEnabled('foo', true)
-browser.management.setEnabled('foo'.id, true)
-browser.menus.create()
-browser.menus.onClicked.addListener('foo')
-browser.menus.removeAll().then(() => {})
-browser.storage.sync.get('auto').then((pref) => {})
-browser.storage.sync.set({ auto: false }).then(() => {})
-*/
-
 const thematic = require('./thematic.js')
+
+beforeEach(() => {
+  logMessages = []
+  menus = []
+  locals = {
+    userThemes: [{ type: 'theme', id: 'usertheme@usertheme.org', name: 'user', description: 'A user theme.' }]
+  }
+  syncs = { minutes: 15 }
+  enabled = []
+  clearCalledWith.length = 0
+  createCalledWith.length = 0
+})
 
 const aBunchOfThemes = [
   { name: 'Theme one', id: 'one' },
@@ -216,7 +208,7 @@ test('buildToolsMenuItem', () => {
   expect(menus).toStrictEqual(expected)
 })
 
-test('buildThemes', () => {
+test('buildThemes', async () => {
   const expected = {
     currentId: 'default-theme@mozilla.org',
     defaultTheme: {
@@ -254,7 +246,7 @@ test('buildThemes', () => {
     userThemes: []
   }
 
-  thematic.buildThemes()
+  await thematic.buildThemes()
   expect(locals).toStrictEqual(expected)
 })
 
@@ -406,10 +398,17 @@ test('bad command', async () => {
 })
 
 test('rotate to next command', async () => {
-  thematic.rotate = jest.fn()
+  locals = {
+    userThemes: [
+      { id: 'theme1', name: 'Theme 1' },
+      { id: 'theme2', name: 'Theme 2' }
+    ],
+    currentId: 'theme1'
+  }
+  enabled = []
   await thematic.commands('Rotate to next theme')
-  expect(thematic.rotate).toHaveBeenCalled()
-  expect(thematic.rotate.mock.calls.length).toBe(1)
+  expect(locals.currentId).toBe('theme2')
+  expect(enabled).toStrictEqual([['theme1', false], ['theme2', true]])
 })
 
 test('switch to default command with no locals', async () => {
@@ -436,13 +435,15 @@ test('switch to default command good', async () => {
       id: 'foo'
     }
   }
+  syncs = { auto: true }
   enabled = []
-  thematic.stopRotation = jest.fn()
+  clearCalledWith.length = 0
   await thematic.commands('Switch to default theme')
   expect(logMessages.length).toBe(0)
   expect(enabled).toStrictEqual([['foo', true]])
-  expect(thematic.stopRotation).toHaveBeenCalled()
-  expect(thematic.stopRotation.mock.calls.length).toBe(1)
+  expect(syncs.auto).toBe(false)
+  expect(clearCalledWith.length).toBe(1)
+  expect(clearCalledWith[0]).toBe('rotate')
 })
 
 test('isMozillaTheme', () => {
@@ -530,23 +531,23 @@ test('stopRotation on Thunderbird', async () => {
 test('toggle autoswitching command when auto is true', async () => {
   syncs = { auto: true, minutes: 30 }
   logMessages = []
-  thematic.stopRotation = jest.fn()
-  thematic.stopRotation.mockResolvedValue(undefined)
+  clearCalledWith.length = 0
   await thematic.commands('Toggle autoswitching')
   expect(syncs.auto).toBe(false)
   expect(logMessages.length).toBe(0)
-  expect(thematic.stopRotation).toHaveBeenCalled()
+  expect(clearCalledWith.length).toBe(1)
+  expect(clearCalledWith[0]).toBe('rotate')
 })
 
 test('toggle autoswitching command when auto is false', async () => {
   syncs = { auto: false, minutes: 30 }
   logMessages = []
-  thematic.startRotation = jest.fn()
-  thematic.startRotation.mockResolvedValue(undefined)
+  createCalledWith.length = 0
   await thematic.commands('Toggle autoswitching')
   expect(syncs.auto).toBe(true)
   expect(logMessages.length).toBe(0)
-  expect(thematic.startRotation).toHaveBeenCalled()
+  expect(createCalledWith.length).toBe(1)
+  expect(createCalledWith[0][0]).toBe('rotate')
 })
 
 test('rotate when no user themes does nothing', async () => {
@@ -597,11 +598,14 @@ test('switch to default command sets currentId and calls stopRotation', async ()
   locals = {
     defaultTheme: { id: 'default-theme@mozilla.org' }
   }
+  syncs = { auto: true }
   enabled = []
-  thematic.stopRotation = jest.fn()
+  clearCalledWith.length = 0
   await thematic.commands('Switch to default theme')
   expect(locals.currentId).toBe('default-theme@mozilla.org')
-  expect(thematic.stopRotation).toHaveBeenCalled()
+  expect(syncs.auto).toBe(false)
+  expect(clearCalledWith.length).toBe(1)
+  expect(clearCalledWith[0]).toBe('rotate')
 })
 
 test('getDefaultTheme returns undefined when no default found', () => {

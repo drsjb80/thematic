@@ -280,23 +280,6 @@ function handleMessage (request, sender, sendResponse) {
 
 browser.runtime.onMessage.addListener(handleMessage)
 
-// allow Jest's mocking to occur
-// https://stackoverflow.com/questions/25649097/nodejs-override-a-function-in-a-module
-function jestTest (fn, testfn) {
-  if (typeof process === 'undefined') {
-    fn()
-  } else {
-    testfn()
-  }
-}
-
-async function jestTestAwait (fn, testfn) {
-  if (typeof process === 'undefined') {
-    await fn()
-  } else {
-    await testfn()
-  }
-}
 
 /**
  * Handles keyboard shortcut commands.
@@ -308,7 +291,6 @@ async function jestTestAwait (fn, testfn) {
  * @param {string} command - The command name to execute
  */
 async function commands (command) {
-  // console.log(command)
   switch (command) {
     case 'Switch to default theme':
       try {
@@ -316,22 +298,22 @@ async function commands (command) {
         const defaultTheme = c.defaultTheme
         await browser.storage.local.set({ currentId: defaultTheme.id })
         browser.management.setEnabled(defaultTheme.id, true)
-        jestTestAwait(stopRotation, module.exports.stopRotation)
+        await stopRotation()
       } catch (error) {
         console.log(error.message)
       }
       break
     case 'Rotate to next theme':
-      jestTest(rotate, module.exports.rotate)
+      await rotate()
       break
     case 'Toggle autoswitching':
       try {
         const c = await browser.storage.sync.get('auto')
         const auto = c.auto
         if (auto) {
-          jestTestAwait(stopRotation, module.exports.stopRotation)
+          await stopRotation()
         } else {
-          jestTestAwait(startRotation, module.exports.startRotation)
+          await startRotation()
         }
         await browser.storage.sync.set({ auto: !auto })
       } catch (error) {
