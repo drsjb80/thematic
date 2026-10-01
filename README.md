@@ -11,7 +11,13 @@ Thunderbird.
 * https://addons.mozilla.org/en-US/firefox/addon/personaswitcher/
 * https://addons.thunderbird.net/en-US/thunderbird/addon/thematic/
 
-This is a re-implementation of personaswitcher that was developed for Firefox 4.
+## Keyboard Shortcuts
+
+- **Alt+Shift+D** - Switch to default theme
+- **Alt+Shift+R** - Rotate to next theme
+- **Alt+Shift+A** - Toggle autoswitching
+
+These shortcuts can be customized in Firefox's extension settings (about:addons).
 
 For Thunderbird, there are at least two way to use Firefox's themes.
 
