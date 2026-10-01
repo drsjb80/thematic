@@ -12,13 +12,13 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [20.x]
+        node-version: [22.x]
 
     steps:
     # Keep actions updated: check GitHub for latest versions
     # - actions/checkout latest: https://github.com/actions/checkout/releases
     # - actions/setup-node latest: https://github.com/actions/setup-node/releases
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
 
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v5
